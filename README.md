@@ -187,7 +187,8 @@ connections as given below.
       <img src="https://live.staticflickr.com/65535/53454815153_60932f74db.jpg" width="100%" alt="Cilium Logo">
    </picture>
 
-
+Users can also use Hubble under Cilium CNI Layer to gain a deep observability and visibility for
+logging, tracing, and monitoring connections under this setup.
 
 
 
