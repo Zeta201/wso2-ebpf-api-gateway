@@ -1,34 +1,67 @@
-# wso2-ebpf-api-gateway
-WSO2-Intern Project [Implementing an eBPF based API Gateway For Kubernetes
 .. raw:: html
 
    <picture>
-      <source media="(prefers-color-scheme: light)" srcset="https://cdn.jsdelivr.net/gh/cilium/cilium@main/Documentation/images/logo.png" width="350" alt="Cilium Logo">
-      <img src="https://cdn.jsdelivr.net/gh/cilium/cilium@main/Documentation/images/logo-dark.png" width="350" alt="Cilium Logo">
+      <source media="(prefers-color-scheme: light)" srcset="https://cdn.jsdelivr.net/gh/cilium/cilium@main/Documentation/images/logo.png" width="200" alt="Cilium Logo">
+      <img src="https://cdn.jsdelivr.net/gh/cilium/cilium@main/Documentation/images/logo-dark.png" width="200" alt="Cilium Logo">
    </picture>
+   <picture>
+      <source media="(prefers-color-scheme: light)" srcset="https://github.com/envoyproxy/artwork/blob/main/PNG/Envoy_Logo_Final_CMYK.png" width="200" alt="Cilium Logo">
+      <img src="https://github.com/envoyproxy/artwork/blob/main/PNG/Envoy_Logo_Final_CMYK.png" width="200" alt="Cilium Logo">
+   </picture>
+   <picture>
+      <source media="(prefers-color-scheme: light)" srcset="https://go.dev/blog/go-brand/Go-Logo/PNG/Go-Logo_Blue.png" width="100" height="80" alt="Golang Logo">
+      <img src="https://go.dev/blog/go-brand/Go-Logo/PNG/Go-Logo_Blue.png" width="140" alt="Golang Logo">
+   </picture>
+   
+WSO2-Implementing an eBPF based API Gateway
+===========================================
 
-|cii| |go-report| |clomonitor| |artifacthub| |slack| |go-doc| |rtd| |apache| |bsd| |gpl| |fossa| |gateway-api| |codespaces|
+Project Introduction
+--------------------
+Enterprise grade web applications are mostly architectured in the form of micro-services where
+multiple services with well-defined and distinct functionalities communicate with each other to
+perform a certain job instead of following a monolithic approach. Within a microservices
+architecture, each microservice is a single service built to accommodate an application feature
+and handle discrete tasks. Each microservice communicates with other services through simple
+interfaces to solve business problems. In a competitive business environment developers should
+be able to deliver changes rapidly, frequently and reliably in order for the business to thrive in
+today’s volatile, uncertain, complex and ambiguous world.
+Most micro-services architecture will at some point require exposing some services to the
+outside of the cluster and securely routing traffic into it. An API Gateway accepts API requests
+from a client, processes them based on defined policies, directs them to the appropriate services,
+and combines the responses for a simplified user experience. Typically, it handles a request by
+invoking multiple microservices and aggregating the results. It can also translate between
+protocols in legacy deployments.
+An API Gateway integrated to a production level microservices environment should be capable
+of implementing, Routing Policies such as HTTP Routing, Rate limiting, Request/Response
+Manipulation, Circuit Breakers, Canary Testing, A/B Scenarios, Health Checks, Load Balancing.
+It should also be able to implement API Security Policies such as Traffic Authentication, Authorization, Access Control and TLS Termination. The Gateway should also be able to provide observability and visibility by real-time traffic, logging, and tracing.
 
-Cilium is a networking, observability, and security solution with an eBPF-based
-dataplane. It provides a simple flat Layer 3 network with the ability to span
-multiple clusters in either a native routing or overlay mode. It is L7-protocol
-aware and can enforce network policies on L3-L7 using an identity based security
-model that is decoupled from network addressing.
+Extended Berkeley Packet Filter (eBPF)
+--------------------------------------
+eBPF is a revolutionary kernel technology that allows the developers to write custom code that can be loaded into the kernel dynamically, changing the way the kernel behaves. This enables a new generation of highly performant networking, observability, and security tools. 
+These are just a few of the many things eBPF enables us to do.
 
-Cilium implements distributed load balancing for traffic between pods and to
-external services, and is able to fully replace kube-proxy, using efficient
-hash tables in eBPF allowing for almost unlimited scale. It also supports
-advanced functionality like integrated ingress and egress gateway, bandwidth
-management and service mesh, and provides deep network and security visibility and monitoring.
+ - Performance tracing of pretty much any aspect of a system
+ - High-performance networking, with built-in visibility
+ - Detecting and (optionally) preventing malicious activity
+ - Network security features that involve dropping certain incoming packets and allowing
+others. These features include firewalling, DDoS protection, and mitigating packet-ofdeath vulnerabilities.
+ - L3/L4 Load Balancing and Packet Parsing using XDP. (eBPF programs attached to the
+XDP hook on a network interface drop certain packets. The program is executed on the
+network card itself whenever a new packet arrives).
+ - Network Layer Security
 
-A new Linux kernel technology called eBPF_ is at the foundation of Cilium. It
-supports dynamic insertion of eBPF bytecode into the Linux kernel at various
-integration points such as: network IO, application sockets, and tracepoints to
-implement security, networking and visibility logic. eBPF is highly efficient
-and flexible. To learn more about eBPF, visit `eBPF.io`_.
+eBPF is continuously evolving and being integrated into various enterprise-grade production
+systems. Here are some examples.
+ - [Cilium project](https://github.com/cilium/cilium): The first networking project to use eBPF to replace the entire datapath in
+container environments.
+ - [Facebook](https://facebook.com) (now Meta) developed [Katran](https://github.com/facebookincubator/katran) which is an open-source, Layer 4 load balancer,
+for Facebook’s need for a highly scalable and fast solution. Every single packet to
+Facebook.com since 2017 has passed through eBPF.
+ - Android uses eBPF for traffic management and traffic control. Every network packet that
+received by our mobile phones has gone through an eBPF program.
 
-.. image:: Documentation/images/cilium-overview.png
-   :alt: Overview of Cilium features for networking, observability, service mesh, and runtime security
 
 Stable Releases
 ===============
