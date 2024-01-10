@@ -1,0 +1,27 @@
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: "rule1"
+spec:
+  description: "Allow HTTP GET / from gateway-sys namespace to echo-service"
+  endpointSelector:
+    matchLabels:
+      name: echo-service
+  ingress:
+  - fromEndpoints:
+    - matchLabels:
+        "k8s:io.kubernetes.pod.namespace": envoy-gateway-system
+    - matchLabels:
+        app: ratings
+    toPorts:
+    - ports:
+      - port: "8080"
+        protocol: TCP
+      rules:
+        http:
+        - method: "GET"
+          path: "/"
+
+
+
+

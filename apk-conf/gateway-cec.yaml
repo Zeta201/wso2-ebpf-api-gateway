@@ -1,0 +1,145 @@
+apiVersion: cilium.io/v2
+kind: CiliumEnvoyConfig
+metadata:
+  creationTimestamp: "2024-01-04T08:50:08Z"
+  generation: 3
+  name: apk-wso2-apk-gateway-service
+  namespace: default
+  ownerReferences:
+  - apiVersion: gateway.networking.k8s.io/v1
+    kind: Gateway
+    name: default
+    uid: 7cb19d4b-8e74-4ea2-9240-9c75d34b63a0
+  resourceVersion: "43036"
+  uid: c82d5806-7e82-4efc-9255-5086a79c5f33
+spec:
+  backendServices:
+  - name: details
+    namespace: default
+    number:
+    - "9080"
+  - name: echo-service
+    namespace: default
+    number:
+    - "8080"
+  resources:
+  - '@type': type.googleapis.com/envoy.config.listener.v3.Listener
+    filterChains:
+    - filterChainMatch:
+        transportProtocol: raw_buffer
+      filters:
+      - name: envoy.filters.network.http_connection_manager
+        typedConfig:
+          '@type': type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          httpFilters:
+          - name: envoy.filters.http.router
+            typedConfig:
+              '@type': type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+          rds:
+            routeConfigName: listener-insecure
+          statPrefix: listener-insecure
+          upgradeConfigs:
+          - upgradeType: websocket
+          useRemoteAddress: true
+    listenerFilters:
+    - name: envoy.filters.listener.tls_inspector
+      typedConfig:
+        '@type': type.googleapis.com/envoy.extensions.filters.listener.tls_inspector.v3.TlsInspector
+    name: listener
+    socketOptions:
+    - description: Enable TCP keep-alive (default to enabled)
+      intValue: "1"
+      level: "1"
+      name: "9"
+      state: STATE_LISTENING
+    - description: TCP keep-alive idle time (in seconds) (defaults to 10s)
+      intValue: "10"
+      level: "6"
+      name: "4"
+      state: STATE_LISTENING
+    - description: TCP keep-alive probe intervals (in seconds) (defaults to 5s)
+      intValue: "5"
+      level: "6"
+      name: "5"
+      state: STATE_LISTENING
+    - description: TCP keep-alive probe max failures.
+      intValue: "10"
+      level: "6"
+      name: "6"
+      state: STATE_LISTENING
+  - '@type': type.googleapis.com/envoy.config.route.v3.RouteConfiguration
+    name: listener-insecure
+    virtualHosts:
+    - domains:
+      - '*'
+      name: '*'
+      routes:
+      - match:
+          pathSeparatedPrefix: /details
+        route:
+          cluster: default:details:9080
+          maxStreamDuration:
+            maxStreamDuration: 0s
+      - match:
+          prefix: /
+        route:
+          host_rewrite_literal: www.envoyproxy.io
+          cluster: service_envoyproxy_io
+          maxStreamDuration:
+            maxStreamDuration: 0s
+  - '@type': type.googleapis.com/envoy.config.cluster.v3.Cluster
+    connectTimeout: 5s
+    edsClusterConfig:
+      serviceName: default/details:9080
+    name: default:details:9080
+    outlierDetection:
+      splitExternalLocalOriginErrors: true
+    type: EDS
+    typedExtensionProtocolOptions:
+      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+        '@type': type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+        commonHttpProtocolOptions:
+          idleTimeout: 60s
+        useDownstreamProtocolConfig:
+          http2ProtocolOptions: {}
+          
+  - '@type': type.googleapis.com/envoy.config.cluster.v3.Cluster
+    name: service_envoyproxy_io
+    type: LOGICAL_DNS
+    connect_timeout: 500s
+    dns_lookup_family: V4_ONLY
+    load_assignment:
+      cluster_name: service_envoyproxy_io
+      endpoints:
+          # A list of endpoints that belong to this cluster.
+          # https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/endpoint/v3/endpoint_components.proto#envoy-v3-api-msg-config-endpoint-v3-localitylbendpoints
+        - lb_endpoints:
+              # A single endpoint, it's load-balancing weight, etc.
+              # https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/endpoint/v3/endpoint_components.proto#envoy-v3-api-msg-config-endpoint-v3-lbendpoint
+            - endpoint:
+                address:
+                  socket_address:
+                    address: www.envoyproxy.io
+                    port_value: 443
+
+     
+          
+  - '@type': type.googleapis.com/envoy.config.cluster.v3.Cluster
+    connectTimeout: 5s
+    edsClusterConfig:
+      serviceName: default/echo-service:8080
+    name: default:echo-service:8080
+    outlierDetection:
+      splitExternalLocalOriginErrors: true
+    type: EDS
+    typedExtensionProtocolOptions:
+      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
+        '@type': type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
+        commonHttpProtocolOptions:
+          idleTimeout: 60s
+        useDownstreamProtocolConfig:
+          http2ProtocolOptions: {}
+  services:
+  - listener: ""
+    name: apk-wso2-apk-gateway-service
+    namespace: default

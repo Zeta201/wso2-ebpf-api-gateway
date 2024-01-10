@@ -1,0 +1,169 @@
+apiVersion: cilium.io/v2
+kind: CiliumEnvoyConfig
+metadata:
+  name: envoy-echo-config
+spec:
+  services:
+    - name: echo-service
+      namespace: default
+
+  resources:
+    - "@type": type.googleapis.com/envoy.config.listener.v3.Listener
+      name: envoy-echo-config
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.http_connection_manager
+              typed_config:
+                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                stat_prefix: envoy-echo-config
+                rds:
+                  route_config_name: lb_route
+                http_filters:
+                  - name: envoy.filters.http.ratelimit
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.ratelimit.v3.RateLimit
+                      # The domain makes a unique namespace when matching against descriptors.
+                      domain: app
+                      # Limit the rate filter to internal, external, or both types of requests.
+                      # Internal requests are identified by the header 'x-envoy-internal: true'.
+                      request_type: external
+                      # What is this?
+                      stage: 0
+                      # Apparently Ratelimit Services can return RESOURCE_EXHAUSTED instead of UNAVAILABLE.
+                      rate_limited_as_resource_exhausted: false
+                      # Indicate whether a failure in the ratelimit service should result in requests being denied.
+                      failure_mode_deny: false
+                      # Format ratelimit headers using the IETF draft format:
+                      # https://datatracker.ietf.org/doc/id/draft-polli-ratelimit-headers-03.html
+                      enable_x_ratelimit_headers: DRAFT_VERSION_03
+                      # Specify where to find the ratelimit service.
+                      rate_limit_service:
+                        # The location of the Ratelimit Service must be defined as a cluster.
+                        grpc_service:
+                          envoy_grpc:
+                            cluster_name: "default/envoy-echo-config/ratelimit_service"
+                        # The version factors into the endpoint for contacting the Ratelimit Service
+                        transport_api_version: V3
+
+                  - name: envoy.filters.http.JwtAuthentication
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.jwt_authn.v3.JwtAuthentication
+                      providers:
+                        # Each JWT authentication provider has a name to be used in routing rules.
+                        provider_funnel:
+                          # The name of the entity that is providing the JWT.
+                          issuer: https://auth.funnel-labs.io/auth/realms/funnel
+                          # Obtain a JSON Web Key Set from a remove server for JWT validation.
+                          remote_jwks:
+                            http_uri:
+                              uri: https://auth.funnel-labs.io/auth/realms/funnel/protocol/openid-connect/certs
+                              cluster: "default/envoy-echo-config/funnel_auth_cluster"
+                              timeout: 10s
+                          # Extract the JWT base64 payload and include it in a header.
+                          forward_payload_header: x-jwt-payload
+                      rules:
+                        # No authentication provider is specified, thus, no authentication happens.
+                        - match:
+                            prefix: /docs
+                        # Aside from the /docs URL, require JWT authentication using the provider name.
+                        - match:
+                            prefix: /
+                          requires:
+                            provider_name: provider_funnel
+
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+    - "@type": type.googleapis.com/envoy.config.route.v3.RouteConfiguration
+      name: lb_route
+      virtual_hosts:
+        - name: app
+          domains:
+            - "*"
+          routes:
+            - match:
+                prefix: "/"
+              route:
+                weighted_clusters:
+                  clusters:
+                    - name: "default/echo-service"
+                      weight: 100
+                rate_limits:
+                  - actions:
+                      # Read a request header and use its value to set the value of a descriptor entry.
+                      # https://www.envoyproxy.io/docs/envoy/latest/api-v3/config/route/v3/route_components.proto#envoy-v3-api-msg-config-route-v3-ratelimit-action-requestheaders
+                      - request_headers:
+                          descriptor_key: key1
+                          # The header whose value should used as the descriptor map entry value.
+                          header_name: key1
+                          # Leave the header out of the descriptor if missing.
+                          # By default, rate limiting is skipped if a header is missing.
+                          skip_if_absent: true
+                      - request_headers:
+                          descriptor_key: key2
+                          header_name: key2
+                          skip_if_absent: true
+                      - request_headers:
+                          descriptor_key: key3
+                          header_name: key3
+                          skip_if_absent: true
+                      - request_headers:
+                          descriptor_key: key4
+                          header_name: key4
+                          skip_if_absent: true
+    - "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
+      name: "default/echo-service"
+      connect_timeout: 5s
+      lb_policy: ROUND_ROBIN
+      type: EDS
+      outlier_detection:
+        split_external_local_origin_errors: true
+        consecutive_local_origin_failure: 2
+
+    - "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
+      name: ratelimit_service
+      lb_policy: ROUND_ROBIN
+      type: STRICT_DNS
+      protocol_selection: USE_CONFIGURED_PROTOCOL
+      http2_protocol_options: {}
+      # dns_lookup_family: V4_ONLY
+      connect_timeout: 10s
+      load_assignment:
+        cluster_name: ratelimit_service
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: 10.96.15.27
+                      port_value: 8081
+
+    - "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
+      name: funnel_auth_cluster
+      lb_policy: ROUND_ROBIN
+      type: LOGICAL_DNS
+      outlier_detection:
+        split_external_local_origin_errors: true
+        consecutive_local_origin_failure: 2
+      dns_lookup_family: V4_ONLY
+      # http2_protocol_options: {}
+      connect_timeout: 500s
+      load_assignment:
+        cluster_name: funnel_auth_cluster
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: auth.funnel-labs.io
+                      port_value: 443
+
+      transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+          # sni: auth.funnel-labs.io
+          # common_tls_context:
+          #   validation_context:
+          #     trusted_ca:
+          #       filename: /etc/ssl/certs/ca-certificates.crt

@@ -1,0 +1,28 @@
+apiVersion: dp.wso2.com/v1alpha1
+kind: API
+metadata:
+  name: http-bin-api
+spec:
+  apiName: HTTP Bin API
+  organization: apk-system
+  apiType: REST
+  apiVersion: 1.0.0
+  basePath: /http-bin-api/1.0.0
+  production:
+    - httpRouteRefs:
+        - prod-http-route-http-bin-api
+
+---
+apiVersion: dp.wso2.com/v1alpha1
+kind: API
+metadata:
+  name: details-api
+spec:
+  apiName: Details API
+  organization: apk-system
+  apiType: REST
+  apiVersion: 1.0.0
+  basePath: /details-api/1.0.0
+  production:
+    - httpRouteRefs:
+        - prod-http-route-details-api

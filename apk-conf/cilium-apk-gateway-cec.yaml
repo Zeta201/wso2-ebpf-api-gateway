@@ -1,0 +1,169 @@
+apiVersion: v1
+items:
+- apiVersion: cilium.io/v2
+  kind: CiliumEnvoyConfig
+  metadata:
+    creationTimestamp: "2024-01-10T05:05:29Z"
+    generation: 1
+    name: cilium-gateway-default
+    namespace: default
+    ownerReferences:
+    - apiVersion: gateway.networking.k8s.io/v1beta1
+      kind: Gateway
+      name: default
+      uid: 805575d2-0b48-43b6-b2e3-ec67551265fd
+    resourceVersion: "14569"
+    uid: 42da7ad9-168b-4944-8751-423753c0f44f
+  spec:
+    resources:
+    - '@type': type.googleapis.com/envoy.config.listener.v3.Listener
+      filterChains:
+      - filterChainMatch:
+          transportProtocol: raw_buffer
+        filters:
+        - name: envoy.filters.network.http_connection_manager
+          typedConfig:
+            '@type': type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+            httpFilters:
+            - name: envoy.filters.http.router
+              typedConfig:
+                '@type': type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+            rds:
+              routeConfigName: listener-insecure
+            statPrefix: listener-insecure
+            upgradeConfigs:
+            - upgradeType: websocket
+            useRemoteAddress: true
+      - filterChainMatch:
+          serverNames:
+          - api.am.wso2.com
+          transportProtocol: tls
+        filters:
+        - name: envoy.filters.network.http_connection_manager
+          typedConfig:
+            '@type': type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+            httpFilters:
+            - name: envoy.filters.http.router
+              typedConfig:
+                '@type': type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+            rds:
+              routeConfigName: listener-secure
+            statPrefix: listener-secure
+            upgradeConfigs:
+            - upgradeType: websocket
+            useRemoteAddress: true
+        transportSocket:
+          name: envoy.transport_sockets.tls
+          typedConfig:
+            '@type': type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+            commonTlsContext:
+              tlsCertificateSdsSecretConfigs:
+              - name: cilium-secrets/default-apk-wso2-apk-system-api-listener-cert
+      - filterChainMatch:
+          serverNames:
+          - idp.am.wso2.com
+          transportProtocol: tls
+        filters:
+        - name: envoy.filters.network.http_connection_manager
+          typedConfig:
+            '@type': type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+            httpFilters:
+            - name: envoy.filters.http.router
+              typedConfig:
+                '@type': type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+            rds:
+              routeConfigName: listener-secure
+            statPrefix: listener-secure
+            upgradeConfigs:
+            - upgradeType: websocket
+            useRemoteAddress: true
+        transportSocket:
+          name: envoy.transport_sockets.tls
+          typedConfig:
+            '@type': type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+            commonTlsContext:
+              tlsCertificateSdsSecretConfigs:
+              - name: cilium-secrets/default-apk-wso2-apk-idp-listener-cert
+      - filterChainMatch:
+          serverNames:
+          - '*.gw.wso2.com'
+          transportProtocol: tls
+        filters:
+        - name: envoy.filters.network.http_connection_manager
+          typedConfig:
+            '@type': type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+            httpFilters:
+            - name: envoy.filters.http.router
+              typedConfig:
+                '@type': type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+            rds:
+              routeConfigName: listener-secure
+            statPrefix: listener-secure
+            upgradeConfigs:
+            - upgradeType: websocket
+            useRemoteAddress: true
+        transportSocket:
+          name: envoy.transport_sockets.tls
+          typedConfig:
+            '@type': type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+            commonTlsContext:
+              tlsCertificateSdsSecretConfigs:
+              - name: cilium-secrets/default-apk-wso2-apk-gw-listener-cert
+      - filterChainMatch:
+          serverNames:
+          - localhost
+          transportProtocol: tls
+        filters:
+        - name: envoy.filters.network.http_connection_manager
+          typedConfig:
+            '@type': type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+            httpFilters:
+            - name: envoy.filters.http.router
+              typedConfig:
+                '@type': type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+            rds:
+              routeConfigName: listener-secure
+            statPrefix: listener-secure
+            upgradeConfigs:
+            - upgradeType: websocket
+            useRemoteAddress: true
+        transportSocket:
+          name: envoy.transport_sockets.tls
+          typedConfig:
+            '@type': type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+            commonTlsContext:
+              tlsCertificateSdsSecretConfigs:
+              - name: cilium-secrets/default-apk-wso2-apk-localhost-listener-cert
+      listenerFilters:
+      - name: envoy.filters.listener.tls_inspector
+        typedConfig:
+          '@type': type.googleapis.com/envoy.extensions.filters.listener.tls_inspector.v3.TlsInspector
+      name: listener
+      socketOptions:
+      - description: Enable TCP keep-alive (default to enabled)
+        intValue: "1"
+        level: "1"
+        name: "9"
+        state: STATE_LISTENING
+      - description: TCP keep-alive idle time (in seconds) (defaults to 10s)
+        intValue: "10"
+        level: "6"
+        name: "4"
+        state: STATE_LISTENING
+      - description: TCP keep-alive probe intervals (in seconds) (defaults to 5s)
+        intValue: "5"
+        level: "6"
+        name: "5"
+        state: STATE_LISTENING
+      - description: TCP keep-alive probe max failures.
+        intValue: "10"
+        level: "6"
+        name: "6"
+        state: STATE_LISTENING
+    services:
+    - listener: ""
+      name: cilium-gateway-default
+      namespace: default
+kind: List
+metadata:
+  resourceVersion: ""
