@@ -189,14 +189,3 @@ connections as given below.
 
 Users can also use Hubble under Cilium CNI Layer to gain a deep observability and visibility for
 logging, tracing, and monitoring connections under this setup.
-
-
-
-Functionality Overview
-======================
-
-
-
-
-
-
