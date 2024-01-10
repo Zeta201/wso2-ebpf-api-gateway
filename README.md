@@ -1,16 +1,24 @@
 .. raw:: html
 
    <picture>
-      <source media="(prefers-color-scheme: light)" srcset="https://cdn.jsdelivr.net/gh/cilium/cilium@main/Documentation/images/logo.png" width="200" alt="Cilium Logo">
-      <img src="https://cdn.jsdelivr.net/gh/cilium/cilium@main/Documentation/images/logo-dark.png" width="200" alt="Cilium Logo">
+      <source media="(prefers-color-scheme: light)" srcset="https://cilium.io/static/cilium-dark-1-8c7358e82e52a0ccab8d1d056de00c50.svg" width="200" alt="Cilium Logo">
+      <img src="https://cilium.io/static/cilium-dark-1-8c7358e82e52a0ccab8d1d056de00c50.svg" width="200" alt="Cilium Logo">
    </picture>
    <picture>
       <source media="(prefers-color-scheme: light)" srcset="https://github.com/envoyproxy/artwork/blob/main/PNG/Envoy_Logo_Final_CMYK.png" width="200" alt="Cilium Logo">
       <img src="https://github.com/envoyproxy/artwork/blob/main/PNG/Envoy_Logo_Final_CMYK.png" width="200" alt="Cilium Logo">
    </picture>
    <picture>
+      <source media="(prefers-color-scheme: light)" srcset="https://kubernetes.io/images/favicon.png" width="100" alt="K8 Logo">
+      <img src="https://kubernetes.io/images/favicon.png" width="200" alt="K8 Logo">
+   </picture>
+   <picture>
       <source media="(prefers-color-scheme: light)" srcset="https://go.dev/blog/go-brand/Go-Logo/PNG/Go-Logo_Blue.png" width="100" height="80" alt="Golang Logo">
       <img src="https://go.dev/blog/go-brand/Go-Logo/PNG/Go-Logo_Blue.png" width="140" alt="Golang Logo">
+   </picture>
+   <picture>
+      <source media="(prefers-color-scheme: light)" srcset="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/530px-Tux.svg.png" width="100" height="100" alt="Linux Logo">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/35/Tux.svg/530px-Tux.svg.png" width="140" alt="Linux Logo">
    </picture>
    
 WSO2-Implementing an eBPF based API Gateway
