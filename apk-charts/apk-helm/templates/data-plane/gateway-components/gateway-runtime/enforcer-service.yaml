@@ -28,4 +28,13 @@ spec:
     - name: servlet-https
       protocol: TCP
       port: 9092
+    - name: endpoint1
+      protocol: TCP
+      port: 8081
+    - name: endpoint2
+      protocol: TCP
+      port: 9001
+    - name: endpoint3
+      protocol: TCP
+      port: 8084
 {{- end -}}
