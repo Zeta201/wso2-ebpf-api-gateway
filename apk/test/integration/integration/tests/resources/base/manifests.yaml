@@ -1,0 +1,386 @@
+# Copyright (c) 2023, WSO2 LLC. (https://www.wso2.com) All Rights Reserved.
+#
+# WSO2 LLC. licenses this file to you under the Apache License,
+# Version 2.0 (the "License"); you may not use this file except
+# in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied. See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gateway-integration-test-infra
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: infra-backend-v1
+  namespace: gateway-integration-test-infra
+spec:
+  selector:
+    app: infra-backend-v1
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: infra-backend-v1
+  namespace: gateway-integration-test-infra
+  labels:
+    app: infra-backend-v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: infra-backend-v1
+  template:
+    metadata:
+      labels:
+        app: infra-backend-v1
+    spec:
+      containers:
+      - name: infra-backend-v1
+        image: gcr.io/k8s-staging-ingressconformance/echoserver:v20221109-7ee2f3e
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        resources:
+          requests:
+            cpu: 10m
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: infra-backend-v2
+  namespace: gateway-integration-test-infra
+spec:
+  selector:
+    app: infra-backend-v2
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 3000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: infra-backend-v2
+  namespace: gateway-integration-test-infra
+  labels:
+    app: infra-backend-v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: infra-backend-v2
+  template:
+    metadata:
+      labels:
+        app: infra-backend-v2
+    spec:
+      containers:
+      - name: infra-backend-v2
+        image: gcr.io/k8s-staging-ingressconformance/echoserver:v20221109-7ee2f3e
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        resources:
+          requests:
+            cpu: "10m"
+# TODO (Amila): Uncomment once AKS test runner is enabled
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: legacy-xml-backend-v1
+#   namespace: gateway-integration-test-infra
+# spec:
+#   selector:
+#     app: legacy-xml-backend-v1
+#   ports:
+#     - protocol: TCP
+#       port: 9082
+#       targetPort: 9082
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: legacy-xml-backend-v1
+#   namespace: gateway-integration-test-infra
+#   labels:
+#     app: legacy-xml-backend-v1
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: legacy-xml-backend-v1
+#   template:
+#     metadata:
+#       labels:
+#         app: legacy-xml-backend-v1
+#     spec:
+#       containers:
+#       - name: legacy-xml-backend-v1
+#         image: wso2am/cc-sample-legacy-xml-backend:v1.0.0
+#         ports:
+#         - containerPort: 9082
+#         resources:
+#           requests:
+#             memory: "800Mi"
+#             cpu: "500m"
+#           limits:
+#             memory: "800Mi"
+#             cpu: "500m"
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: interceptor-backend-v1
+#   namespace: gateway-integration-test-infra
+# spec:
+#   selector:
+#     app: interceptor-backend-v1
+#   ports:
+#     - protocol: TCP
+#       port: 9081
+#       targetPort: 9081
+# ---
+# apiVersion: cert-manager.io/v1
+# kind: Certificate
+# metadata:
+#   name: interceptor-cert-secret
+#   namespace: gateway-integration-test-infra
+# spec:
+#   commonName: interceptor-backend-v1.gateway-integration-test-infra
+#   privateKey:
+#     algorithm: RSA
+#     encoding: PKCS8
+#     size: 2048
+#   dnsNames:
+#   - "interceptor-backend-v1.gateway-integration-test-infra"
+#   issuerRef:
+#     kind: ClusterIssuer
+#     name: selfsigned-issuer
+#   secretName: interceptor-cert-secret
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: interceptor-backend-v1
+#   namespace: gateway-integration-test-infra
+#   labels:
+#     app: interceptor-backend-v1
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: interceptor-backend-v1
+#   template:
+#     metadata:
+#       labels:
+#         app: interceptor-backend-v1
+#     spec:
+#       containers:
+#       - name: interceptor-backend-v1
+#         image: wso2am/cc-sample-xml-interceptor-nodejs:v1.0.0
+#         ports:
+#         - containerPort: 9081
+#         resources:
+#           requests:
+#             memory: "800Mi"
+#             cpu: "500m"
+#           limits:
+#             memory: "800Mi"
+#             cpu: "500m"
+#         volumeMounts:
+#           - name: interceptor-certs-vol
+#             mountPath: /usr/src/app/certs/mg.pem
+#             subPath: ca.crt
+#           - name: interceptor-certs-vol
+#             mountPath: /usr/src/app/certs/interceptor.key
+#             subPath: tls.key
+#           - name: interceptor-certs-vol
+#             mountPath: /usr/src/app/certs/interceptor.pem
+#             subPath: tls.crt
+#       volumes:
+#         - name: interceptor-certs-vol
+#           secret:
+#             secretName: interceptor-cert-secret
+# TODO (Amila): Uncomment once AKS test runner is enabled
+# apiVersion: dp.wso2.com/v1alpha1
+# kind: Backend
+# metadata:
+#   name: legacy-xml-backend-v1
+#   namespace: gateway-integration-test-infra
+# spec:
+#   services:
+#   - host: legacy-xml-backend-v1.gateway-integration-test-infra
+#     port: 9082
+# ---
+# apiVersion: dp.wso2.com/v1alpha1
+# kind: Backend
+# metadata:
+#   namespace: gateway-integration-test-infra
+#   name: interceptor-backend-v1
+# spec:
+#   protocol: https
+#   services:
+#   - host: interceptor-backend-v1.gateway-integration-test-infra
+#     port: 9081
+#   tls:
+#     secretRef:
+#       name: interceptor-cert-secret
+#       key: ca.crt
+# ---
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: interceptor-backend-v1
+#   namespace: gateway-integration-test-infra
+# spec:
+#   replicas: 1
+#   selector:
+#     matchLabels:
+#       app: interceptor-backend-v1
+#   template:
+#     metadata:
+#       labels:
+#         app: interceptor-backend-v1
+#     spec:
+#       containers:
+#         - name: interceptor-backend-v1
+#           image: nomadxd/interceptor-service:latest
+#           ports:
+#             - containerPort: 8080
+#           imagePullPolicy: Always
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: interceptor-backend-v1
+#   namespace: gateway-integration-test-infra
+# spec:
+#   selector:
+#     app: interceptor-backend-v1
+#   ports:
+#     - name: http
+#       port: 9081
+#       targetPort: 8080
+# ---
+# apiVersion: dp.wso2.com/v1alpha1
+# kind: Backend
+# metadata:
+#   name: interceptor-backend-v1
+#   namespace: gateway-integration-test-infra
+# spec:
+#   protocol: http
+#   services:
+#     - host: interceptor-backend-v1.apk
+#       port: 9081
+# ---
+---
+apiVersion: dp.wso2.com/v1alpha1
+kind: TokenIssuer
+metadata:
+  name: testkey-idp-1
+  namespace: apk-integration-test
+spec:
+  consumerKeyClaim: azp
+  issuer: https://idp.am.wso2.com/token
+  name: TestKey-idp
+  organization: carbon.super
+  scopesClaim: scope
+  signatureValidation:
+    certificate:
+      secretRef:
+        key: wso2carbon.pem
+        name: apk-test-setup-wso2-apk-enforcer-truststore-secret
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: default
+
+---
+apiVersion: dp.wso2.com/v1alpha1
+kind: TokenIssuer
+metadata:
+  name: testkey-idp-2
+  namespace: apk-integration-test
+spec:
+  consumerKeyClaim: azp
+  issuer: https://idp.am.wso2.com/token
+  name: TestKey-idp
+  organization: wso2-org
+  scopesClaim: scope
+  signatureValidation:
+    certificate:
+      secretRef:
+        key: wso2carbon.pem
+        name: apk-test-setup-wso2-apk-enforcer-truststore-secret
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: default
+---
+apiVersion: dp.wso2.com/v1alpha1
+kind: TokenIssuer
+metadata:
+  name: testkey-idp-3
+  namespace: apk-integration-test
+spec:
+  consumerKeyClaim: azp
+  issuer: https://idp.am.wso2.com/token
+  name: TestKey-idp
+  organization: default
+  scopesClaim: scope
+  signatureValidation:
+    certificate:
+      secretRef:
+        key: wso2carbon.pem
+        name: apk-test-setup-wso2-apk-enforcer-truststore-secret
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: default   
+---
+# This is a API with wrong organization(jwt issuer not set). 
+# When test cases apply the correct API it should overrite the wrong value to correct value
+apiVersion: dp.wso2.com/v1alpha1
+kind: API
+metadata:
+  name: all-http-methods-for-wildcard
+  namespace: gateway-integration-test-infra
+spec:
+  apiName: API with Backend Base Path
+  apiType: REST
+  apiVersion: v1.0.0
+  basePath: /all-http-methods-for-wildcard/v1.0.0
+  isDefaultVersion: true
+  #definitionFileRef: definition-file
+  production:
+    - httpRouteRefs:
+      - all-http-methods-for-wildcard-httproute
+  organization: wso2-org1111

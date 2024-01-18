@@ -1,0 +1,29 @@
+codecov:
+  max_report_age: off
+
+coverage:
+
+  status:
+    project: off
+    patch: off
+flag_management:
+  individual_flags:
+    - name: adapter
+      paths:
+        - '**/adapter/**'
+    - name: config-deployer-service
+      paths:
+        - '**/config-deployer-service/**'
+
+    - name: idp-domain-service
+      paths:
+        - '**/idp/idp-domain-service/**'
+    - name: idp-ui
+      paths:
+        - '**/idp/idp-ui/**'
+
+      statuses:
+        - type: project
+          target: 75%
+          threshold: 1%
+      carryforward: true

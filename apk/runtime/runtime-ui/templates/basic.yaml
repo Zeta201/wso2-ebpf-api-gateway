@@ -1,0 +1,24 @@
+name: "My API"
+basePath: "/myapi"
+type: "REST"
+endpointConfigurations:
+  production:
+    endpoint: "https://endpoint/production"
+  sandbox:
+    endpoint: "https://endpoint/sandbox"
+operations: []
+apiPolicies:
+  request: []
+  response: []
+rateLimit:
+  requestsPerUnit: 1000
+  unit: "Hour"
+authentication: []
+additionalProperties: []
+corsConfiguration:
+  corsConfigurationEnabled: false
+  accessControlAllowOrigins: []
+  accessControlAllowCredentials: false
+  accessControlAllowHeaders: []
+  accessControlAllowMethods: []
+  accessControlAllowMaxAge: 0

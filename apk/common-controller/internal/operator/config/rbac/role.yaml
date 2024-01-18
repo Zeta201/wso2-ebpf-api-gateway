@@ -1,0 +1,110 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - cp.wso2.com
+  resources:
+  - applicationmappings
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cp.wso2.com
+  resources:
+  - applicationmappings/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - cp.wso2.com
+  resources:
+  - applicationmappings/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - cp.wso2.com
+  resources:
+  - applications
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cp.wso2.com
+  resources:
+  - applications/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - cp.wso2.com
+  resources:
+  - applications/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - cp.wso2.com
+  resources:
+  - subscriptions
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - cp.wso2.com
+  resources:
+  - subscriptions/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - cp.wso2.com
+  resources:
+  - subscriptions/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - dp.wso2.com
+  resources:
+  - ratelimitpolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - dp.wso2.com
+  resources:
+  - ratelimitpolicies/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - dp.wso2.com
+  resources:
+  - ratelimitpolicies/status
+  verbs:
+  - get
+  - patch
+  - update

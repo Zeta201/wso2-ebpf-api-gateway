@@ -1,0 +1,113 @@
+# -----------------------------------------------------------------------
+
+# --------------------------------------------------------------------
+# Copyright (c) 2022, WSO2 LLC. (http://wso2.com) All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+---
+apiVersion: dp.wso2.com/v1alpha1
+kind: Backend
+metadata:
+  name: insecure-backend
+spec:
+  services:
+  - host: backend
+    port: 80
+  security:
+    basic:
+      secretRef:
+        name: user-creds
+        usernameKey: usr
+        passwordKey: pwd
+---
+apiVersion: dp.wso2.com/v1alpha1
+kind: Backend
+metadata:
+  name: test-backend
+spec:
+  timeout:
+    upstreamResponseTimeout: 60
+    downstreamRequestIdleTimeout: 40
+  healthCheck:
+    timeout: 5
+  retry:
+    count: 4
+    baseIntervalMillis: 2000
+    statusCodes:
+      - 504
+      - 500
+  services:
+  - host: test-backend-svc
+    port: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-backend-svc
+spec:
+  type: ExternalName
+  externalName: external-service.local
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: user-creds
+data:
+  pwd: YWRtaW4K
+  usr: YWRtaW4K
+type: Opaque
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+  selector:
+    app: httpbin
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpbin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: httpbin
+  template:
+    metadata:
+      labels:
+        app: httpbin
+    spec:
+      containers:
+        - image: docker.io/kennethreitz/httpbin:latest
+          imagePullPolicy: IfNotPresent
+          name: httpbin
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "200Mi"
+              cpu: "300m"
+            limits:
+              memory: "200Mi"
+              cpu: "300m"

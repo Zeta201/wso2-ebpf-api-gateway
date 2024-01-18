@@ -1,0 +1,314 @@
+# Copyright (c) 2023, WSO2 LLC. (http://www.wso2.org) All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+openapi: 3.0.0
+info:
+  title: Key Manager Proxy Service
+  description: Key Manager Proxy Service
+  version: v1
+  contact:
+    name: WSO2
+    url: http://wso2.com/products/api-manager/
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+tags:
+  - name: key manageent
+    description: key manageent
+paths:
+  "/register":
+    post:
+      tags:
+        - Client Registration
+      summary: Register Client.
+      operationId: registerClient
+      requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientRegistrationRequest"
+      responses:
+        201:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientRegistrationResponse"  
+
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+  "/register/{clientId}":
+    get:
+      tags:
+        - "Client Registration"
+      summary: Get Client. 
+      operationId: getClient
+      parameters:
+        - $ref: "#/components/parameters/client_id"
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientRegistrationResponse"
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+    put:
+      tags:
+        - Client Registration
+      summary: Update Client
+      operationId: updateClient
+      parameters:
+        - $ref: "#/components/parameters/client_id"
+      requestBody:
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientUpdateRequest"
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientRegistrationResponse"  
+        500:
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      tags:
+        - Client Registration
+      summary: Delete Client.
+      operationId: deleteClient
+      parameters:
+        - $ref: "#/components/parameters/client_id"
+      responses:
+        204:
+          description: Successful operation
+        500:
+          $ref: "#/components/responses/InternalServerError"
+  "/token":
+    post:
+      tags:
+        - Token
+      summary: Get Token.
+      operationId: getToken
+      requestBody:
+          content:
+            application/x-www-form-urlencoded:
+              schema:
+                $ref: "#/components/schemas/TokenRequest"
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"  
+        500:
+          $ref: "#/components/responses/InternalServerError"
+components:
+  parameters:
+    client_id:
+      name: client_id
+      in: query
+      description: Client Id
+      required: true
+      schema:
+        type: string
+        example: "test"
+  schemas:
+    ClientRegistrationRequest:
+      title: Client Registration Request
+      type: object
+      properties:
+        redirect_uris:
+          type: array
+          items:
+            type: string
+            example: "https://localhost:9443/callback"
+        response_types:
+          type: array
+          items:
+            type: string
+            example: "code"
+        grant_types:
+          type: array
+          items:
+            type: string
+            example: "authorization_code"
+        application_type:
+          type: string
+          example: "web"
+        client_name:
+          type: string
+          example: "test"
+        logo_uri:
+          type: string
+          example: "https://localhost:9443/logo.png"
+        client_uri:
+          type: string
+          example: "https://localhost:9443"
+        policy_uri:
+          type: string
+          example: "https://localhost:9443/policy"
+        tos_uri:
+          type: string
+          example: "https://localhost:9443/tos"
+        jwks_uri:
+          type: string
+          example: "https://localhost:9443/jwks"
+        subject_type:
+          type: string
+          example: "public"
+        token_endpoint_auth_method:
+          type: string
+          example: "client_secret_basic"
+        additional_properties:
+          type: object
+          example: {}
+    ClientRegistrationResponse:
+      title: Client Registration Response
+      allOf:
+        - $ref: "#/components/schemas/ClientRegistrationRequest"
+        - type: object
+          properties:
+            client_secret:
+              type: string
+              example: "test"
+            client_id:
+              type: string
+              example: "test"
+            client_secret_expires_at:
+              type: integer
+              format: int64
+              example: 1577858400
+            registration_access_token:
+              type: string
+              example: "test"
+                
+    ClientUpdateRequest:
+      title: Client Update Request
+      allOf:
+        - $ref: "#/components/schemas/ClientRegistrationRequest"
+        - type: object
+          properties:
+            client_secret:
+              type: string
+              example: "test"
+            client_id:
+              type: string
+              example: "test"      
+
+    Error:
+      title: Error object returned with 4XX HTTP status
+      required:
+        - code
+        - message
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Error code
+          format: int64
+        message:
+          type: string
+          description: Error message.
+        description:
+          type: string
+          description: |
+            A detail description about the error message.
+        moreInfo:
+          type: string
+          description: |
+            Preferably an url with more details about the error.
+        error:
+          type: array
+          description: |
+            If there are more than one error list them out.
+            For example, list out validation errors by each field.
+          items:
+            $ref: '#/components/schemas/ErrorListItem'
+    ErrorListItem:
+      title: Description of individual errors that may have occurred during a request.
+      required:
+        - code
+        - message
+      type: object
+      properties:
+        code:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: |
+            Description about individual errors occurred
+    TokenRequest:
+      title: Token Request
+      type: object
+      properties:
+        client_id:
+          type: string
+          example: "test"
+        client_secret:
+          type: string
+          example: "test"
+        scopes:
+          type: array
+          items:
+            type: string
+            example: "openid"
+    TokenResponse:
+      title: Token Response
+      type: object
+      properties:
+        access_token:
+          type: string
+          example: "test"
+        token_type:
+          type: string
+          example: "Bearer"
+        expires_in:
+          type: integer
+          format: int64
+          example: 3600
+        refresh_token:
+          type: string
+          example: "test"
+        scope:
+          type: string
+          example: "openid"
+        id_token:
+          type: string
+          example: "test"
+        additional_properties:
+          type: object
+          example: {}
+  responses:
+    InternalServerError:
+      description: Internal Server Error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            code: 500
+            message: Internal Server Error
+            description: The server encountered an internal error. Please contact
+              administrator.
+            moreInfo: ""
+            error: []

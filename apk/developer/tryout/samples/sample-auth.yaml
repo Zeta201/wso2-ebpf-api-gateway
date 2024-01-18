@@ -1,0 +1,30 @@
+apiVersion: dp.wso2.com/v1alpha1
+kind: Authentication
+metadata:
+  name: sand-http-bin-authentication
+spec:
+  override:
+    disabled: true
+    # serviceRef:
+    #   group: wso2/v1alpha2
+    #   kind: Backend
+    #   name: ext_authz-server
+    #   port: 1234
+    # authTypes:
+    #   apiKey:
+    #     - in: Header
+    #       name: x-api-key
+  #   ext:
+  #     serviceRef: 
+  #       group: wso2/v1alpha2
+  #       kind: Backend
+  #       name: ext_authz-server
+  #       port: 1234
+  #     authTypes:
+  #       apiKey:
+  #         - in: Header
+  #           name: x-api-key
+  targetRef:
+    kind: Resource
+    name: http-bin-api #provide API ref name
+    group: gateway.networking.k8s.io

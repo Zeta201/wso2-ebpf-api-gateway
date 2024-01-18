@@ -1,0 +1,24 @@
+plugins {
+    id 'net.researchgate.release' version '2.8.0'
+}
+apply from: "$projectDir/../common-gradle-scripts/docker.gradle"
+
+task build{
+    dependsOn docker_build
+}
+
+
+allprojects {
+    group = project.group
+    version = project.version
+}
+
+release {
+    tagTemplate = 'apkbase-$version'
+
+    git {
+        requireBranch = project.hasProperty('releaseBranch') ? project.releaseBranch : 'main'
+
+        pushToRemote= "origin"
+    }
+}

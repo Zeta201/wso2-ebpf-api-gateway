@@ -1,0 +1,23 @@
+apiVersion: dp.wso2.com/v1alpha1
+kind: APIPolicy
+metadata:
+  name: backend-jwt-token-policy
+spec:
+  override:
+    backendJwtPolicy:
+      name: backend-jwt-policy
+    cORSPolicy:
+      accessControlAllowCredentials: false
+      accessControlAllowOrigins:
+        - "*"
+      accessControlAllowHeaders:
+        - authorization
+      accessControlAllowMethods:
+        - GET
+        - POST
+      accessControlExposeHeaders:
+        - "*"
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: API
+    name: http-bin-api

@@ -1,0 +1,9 @@
+go 1.21.3
+
+use (
+	./adapter
+	./common-controller
+	./common-go-libs
+	./management-server
+	./test/integration
+)

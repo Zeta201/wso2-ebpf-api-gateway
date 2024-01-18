@@ -1,0 +1,28 @@
+---
+name: "BackendRetry"
+basePath: "/backend-retry"
+version: "3.14"
+id: "backend-retry-test"
+type: "REST"
+defaultVersion: true
+endpointConfigurations:
+  production:
+    endpoint: "http://backend-retry:80"
+    resiliency:
+      retryPolicy:
+        count: 3
+        statusCodes:
+          - 500
+operations:
+  - target: "/retry"
+    verb: "GET"
+    secured: true
+    scopes: []
+  - target: "/reset"
+    verb: "POST"
+    secured: true
+    scopes: [ ]
+  - target: "/set-retry-count"
+    verb: "POST"
+    secured: true
+    scopes: [ ]

@@ -1,0 +1,24 @@
+kind: API
+apiVersion: wso2.com/v1beta1
+metadata:
+  name: SwaggerPetstore
+spec:
+  apiName: SwaggerPetstore
+  apiVersion: 1.0.6
+#  TODO(amali) check value from k8
+  definitionFile:
+    valueFrom:
+     configRef: swagger-definition-SwaggerPetstore.namespace
+     uRL: http://example.com
+  production:
+    - httpRouteRefs:
+      - http-route-SwaggerPetstore-p1
+      - http-route-SwaggerPetstore-p2
+  sandbox:
+    - httpRouteRefs:
+      - http-route-SwaggerPetstore-sand-p1
+      - http-route-SwaggerPetstore-sand-p2
+  apiType: REST / GraphQL / Async
+  basePath: /pet-store-api/1.0.6
+  organization: org1
+  systemAPI: false

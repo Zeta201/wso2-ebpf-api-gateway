@@ -1,0 +1,70 @@
+{
+  "name": "apk-config-language-support",
+  "displayName": "APK Config Language Support",
+  "description": "APK config language support ",
+  "author": "WSO2",
+  "license": "Apache 2.0",
+  "version": "1.0.0",
+  "publisher": "WSO2",
+  "bugs": "https://github.com/wso2/apk/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wso2/apk"
+  },
+  "icon": "icon/icon128.png",
+  "engines": {
+    "npm": ">=7.0.0",
+    "vscode": "^1.63.0"
+  },
+  "keywords": [
+    "apk",
+    "yaml",
+    "autocompletion",
+    "validation",
+    "wso2"
+  ],
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Snippets",
+    "Formatters"
+  ],
+  "activationEvents": [
+    "workspaceContains:**/*.apk-conf"
+  ],
+  "main": "./out/extension.js",
+  "extensionDependencies": ["redhat.vscode-yaml"],
+  "contributes": {
+    "languages": [
+      {
+        "id": "yaml",
+        "aliases": ["APK Configuration"],
+        "extensions": [".apk-conf"],
+        "configuration": "./language-configuration.json"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "yarn run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "yarn run compile && yarn run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js",
+    "build": "vsce package"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "20.2.5",
+    "@types/vscode": "^1.63.0",
+    "@typescript-eslint/eslint-plugin": "^5.59.8",
+    "@typescript-eslint/parser": "^5.59.8",
+    "@vscode/test-electron": "^2.3.2",
+    "eslint": "^8.41.0",
+    "glob": "^8.1.0",
+    "mocha": "^10.2.0",
+    "typescript": "^5.1.3",
+    "vsce": "^2.15.0"
+  }
+}

@@ -1,0 +1,54 @@
+body {
+  padding: 50px;
+  font: 14px 'Montserrat', sans-serif;
+  background: #f4f6f8ff url(../images/bck.png) no-repeat top right;
+}
+.add-block {
+  background: #f4f6f8ff;
+  border: 1px solid #bedbdc;
+  border-radius: 5px;
+  padding: 10px;
+  margin: 10px 0;
+  border-right: none;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.login-block {
+  background: #fbfbfc;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 20px;
+  margin: 10px 0;
+  border-left: none;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  text-align: center;
+}
+.add-block p {
+  line-height: 1.8;
+  padding: 20px;
+}
+.footer-text {
+  text-align: center;
+}
+.form-login-heading {
+  margin-bottom: 20px;
+  margin-top: 30px;
+}
+.form-logo-wrapper {
+  text-align: center;
+  margin-bottom: 30px;
+}
+.form-message-wrapper {
+  margin-bottom: 20px;
+}
+.form-gap {
+  margin-bottom: 20px;
+  text-align: left;
+}
+.form-gap button{
+  width: 100%;
+}
+.btn-primary, .btn-primary:hover, .btn-primary:active, .btn-primary:visited {
+  background-color: #13addf !important;
+}

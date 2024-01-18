@@ -1,0 +1,464 @@
+components:
+  schemas:
+    APKConf:
+      title: API object
+      required:
+        - basePath
+        - name
+        - version
+        - type
+        - endpointConfigurations
+        - operations
+      type: object
+      properties:
+        id:
+          type: string
+          description: |
+            UUID of the API
+          readOnly: true
+        name:
+          maxLength: 60
+          minLength: 1
+          type: string
+        basePath:
+          maxLength: 256
+          minLength: 1
+          type: string
+        version:
+          maxLength: 30
+          minLength: 1
+          pattern: ^[^~!@#;:%^*()+={}|\\<>"',&/$\[\]\s+\/]+$
+          type: string
+        type:
+          type: string
+          default: REST
+          enum:
+            - REST
+            - GRAPHQL
+            - GRPC
+            - WEBSOCKET
+        definitionPath:
+          type: string
+          description: |
+            Endpoint to expose API definition file
+        defaultVersion:
+          type: boolean
+          description: |
+            Is this the default version of the API
+        subscriptionValidation:
+          type: boolean
+          description: |
+            Is subscription validation enabled for the API
+        environment:
+          type: string
+          description: |
+            Environment of the API
+        endpointConfigurations:
+          $ref: "#/components/schemas/EndpointConfigurations"
+        operations:
+          type: array
+          items:
+            $ref: "#/components/schemas/APKOperations"
+        apiPolicies:
+          $ref: "#/components/schemas/APIOperationPolicies"
+        rateLimit:
+          $ref: "#/components/schemas/RateLimit"
+        authentication:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuthenticationRequest"
+        additionalProperties:
+          type: array
+          description: Map of custom properties of API
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              value:
+                type: string
+        corsConfiguration:
+          $ref: "#/components/schemas/CORSConfiguration"
+      additionalProperties: false
+    AuthenticationRequest:
+      oneOf:
+        - $ref: "#/components/schemas/OAuth2Authentication"
+        - $ref: "#/components/schemas/APIKeyAuthentication"
+        - $ref: "#/components/schemas/MTLSAuthentication"
+      discriminator:
+        propertyName: authType
+        mapping:
+          OAuth2: "#/components/schemas/OAuth2Authentication"
+          APIKey: "#/components/schemas/APIKeyAuthentication"
+          mTLS: "#/components/schemas/MTLSAuthentication"
+    Authentication:
+      type: object
+      discriminator:
+        propertyName: authType
+      properties:
+        authType:
+          type: string
+          example: JWT
+        enabled:
+          type: boolean
+          example: true
+      additionalProperties: false
+    OAuth2Authentication:
+      allOf:
+        - $ref: "#/components/schemas/Authentication"
+        - type: object
+          properties:
+            sendTokenToUpstream:
+              type: boolean
+              default: false
+            headerName:
+              type: string
+              example: Authorization
+              default: Authorization
+            headerEnable:
+              type: boolean
+              default: true
+          additionalProperties: false
+    APIKeyAuthentication:
+      allOf:
+        - $ref: "#/components/schemas/Authentication"
+        - type: object
+          properties:
+            sendTokenToUpstream:
+              type: boolean
+              default: false
+            headerName:
+              type: string
+              example: Authorization
+              default: apikey
+            queryParamName:
+              type: string
+              example: apikey
+              default: apikey
+            headerEnable:
+              type: boolean
+              default: true
+            queryParamEnable:
+              type: boolean
+              default: true
+          additionalProperties: false
+    MTLSAuthentication:
+      allOf:
+        - $ref: "#/components/schemas/Authentication"
+        - type: object
+          properties:
+            required:
+              type: string
+              default: optional
+              enum:
+                - mandatory
+                - optional
+            certificates:
+              type: array
+              description: The names and keys of the config maps containing the mTLS certificates of that API
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  key:
+                    type: string
+          additionalProperties: false
+    CORSConfiguration:
+      type: object
+      description: |
+        CORS Configuration of API
+      additionalProperties: false
+      properties:
+        corsConfigurationEnabled:
+          type: boolean
+          default: false
+        accessControlAllowOrigins:
+          type: array
+          items:
+            type: string
+        accessControlAllowCredentials:
+          type: boolean
+          default: false
+        accessControlAllowHeaders:
+          type: array
+          items:
+            type: string
+        accessControlAllowMethods:
+          type: array
+          items:
+            type: string
+        accessControlAllowMaxAge:
+          type: integer
+          default: 0
+        accessControlExposeHeaders:
+          type: array
+          items:
+            type: string
+    APIOperationPolicies:
+      title: API Operation Level Policies
+      properties:
+        request:
+          type: array
+          items:
+            $ref: "#/components/schemas/APKOperationPolicy"
+        response:
+          type: array
+          items:
+            $ref: "#/components/schemas/APKOperationPolicy"
+      additionalProperties: false
+    APKOperationPolicy:
+      title: API Operation Policy
+      oneOf:
+        - $ref: "#/components/schemas/InterceptorPolicy"
+        - $ref: "#/components/schemas/BackendJWTPolicy"
+      discriminator:
+        propertyName: "policyName"
+        mapping:
+          BackendJwt: "#/components/schemas/BackendJWTPolicy"
+          Interceptor: "#/components/schemas/InterceptorPolicy"
+    BaseOperationPolicy:
+      title: API Operation Policy
+      required:
+        - policyName
+      type: object
+      properties:
+        policyName:
+          type: string
+        policyVersion:
+          type: string
+          default: "v1"
+        policyId:
+          type: string
+      discriminator:
+        propertyName: policyName
+      additionalProperties: false
+    RateLimit:
+      title: API Rate Limit Details
+      type: object
+      required:
+        - requestsPerUnit
+        - unit
+      properties:
+        requestsPerUnit:
+          type: integer
+          description: Number of requests allowed per specified unit of time
+          example: 30
+        unit:
+          type: string
+          description: Unit of time
+          enum:
+            - Minute
+            - Hour
+            - Day
+          example: Minute
+      additionalProperties: false
+    EndpointConfigurations:
+      title: Endpoint configs
+      properties:
+        production:
+          $ref: "#/components/schemas/EndpointConfiguration"
+        sandbox:
+          $ref: "#/components/schemas/EndpointConfiguration"
+      additionalProperties: false
+    EndpointConfiguration:
+      required:
+        - endpoint
+      type: object
+      properties:
+        endpoint:
+          type: object
+          oneOf:
+            - type: string
+            - $ref: "#/components/schemas/K8sService"
+        endpointSecurity:
+          $ref: "#/components/schemas/EndpointSecurity"
+        certificate:
+          type: object
+          $ref: "#/components/schemas/Certificate"
+        resiliency:
+          $ref: "#/components/schemas/Resiliency"
+      additionalProperties: false
+    Certificate:
+      type: object
+      properties:
+        secretName:
+          type: string
+        secretKey:
+          type: string
+      additionalProperties: false
+    EndpointSecurity:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+          default: false
+        securityType:
+          oneOf:
+            - $ref: "#/components/schemas/BasicEndpointSecurity"
+      additionalProperties: false
+    BasicEndpointSecurity:
+      type: object
+      properties:
+        secretName:
+          type: string
+        userNameKey:
+          type: string
+        passwordKey:
+          type: string
+      additionalProperties: false
+    Resiliency:
+      type: object
+      properties:
+        timeout:
+          $ref: "#/components/schemas/Timeout"
+        retryPolicy:
+          $ref: "#/components/schemas/RetryPolicy"
+        circuitBreaker:
+          $ref: "#/components/schemas/CircuitBreaker"
+      additionalProperties: false
+    CircuitBreaker:
+      type: object
+      properties:
+        maxConnectionPools:
+          type: integer
+        maxConnections:
+          type: integer
+        maxPendingRequests:
+          type: integer
+        maxRequests:
+          type: integer
+        maxRetries:
+          type: integer
+      additionalProperties: false
+    Timeout:
+      type: object
+      properties:
+        downstreamRequestIdleTimeout:
+          type: integer
+        upstreamResponseTimeout:
+          type: integer
+      additionalProperties: false
+    RetryPolicy:
+      type: object
+      properties:
+        count:
+          type: integer
+        baseIntervalMillis:
+          type: integer
+        statusCodes:
+          type: array
+          items:
+            type: integer
+      additionalProperties: false
+    APKOperations:
+      title: Operation
+      type: object
+      properties:
+        target:
+          type: string
+          example: /order/{orderId}
+        verb:
+          type: string
+          example: POST
+        secured:
+          type: boolean
+          example: true
+          default: true
+          description: Authentication mode for resource (true/false)
+        endpointConfigurations:
+          $ref: "#/components/schemas/EndpointConfigurations"
+        operationPolicies:
+          $ref: "#/components/schemas/APIOperationPolicies"
+        rateLimit:
+          $ref: "#/components/schemas/RateLimit"
+        scopes:
+          type: array
+          example: []
+          items:
+            type: string
+      additionalProperties: false
+    K8sService:
+      type: object
+      properties:
+        name:
+          type: string
+          example: pizzashack-service
+        namespace:
+          type: string
+          example: apk-platform
+        port:
+          type: integer
+          example: 8080
+        protocol:
+          type: string
+          example: http
+      additionalProperties: false
+    InterceptorPolicy:
+      title: Interceptor Parameters
+      allOf:
+        - $ref: "#/components/schemas/BaseOperationPolicy"
+        - type: object
+          properties:
+            parameters:
+              type: object
+              properties:
+                backendUrl:
+                  type: string
+                headersEnabled:
+                  type: boolean
+                bodyEnabled:
+                  type: boolean
+                trailersEnabled:
+                  type: boolean
+                contextEnabled:
+                  type: boolean
+                tlsSecretName:
+                  type: string
+                tlsSecretKey:
+                  type: string
+              additionalProperties: false
+      required:
+        - backendUrl
+      additionalProperties: false
+    BackendJWTPolicy:
+      title: Backend JWT Parameters
+      allOf:
+        - $ref: "#/components/schemas/BaseOperationPolicy"
+        - type: object
+          properties:
+            parameters:
+              type: object
+              properties:
+                encoding:
+                  type: string
+                signingAlgorithm:
+                  type: string
+                header:
+                  type: string
+                tokenTTL:
+                  type: integer
+                customClaims:
+                  type: array
+                  items:
+                    "$ref": "#/components/schemas/CustomClaims"
+              additionalProperties: false
+      required:
+        - enabled
+      additionalProperties: false
+    CustomClaims:
+      type: object
+      required:
+        - claim
+        - value
+      properties:
+        claim:
+          type: string
+          default: claim1
+        value:
+          type: string
+          default: value1
+        type:
+          type: string
+          default: string
+      additionalProperties: false
