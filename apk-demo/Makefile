@@ -12,6 +12,8 @@ deploy-demo-apps:
 	kubectl apply -f backend.yaml
 	kubectl apply -f httproute.yaml
 	kubectl apply -f api.yaml
+	@echo "Deployment success!"
+	@echo "Run \e[1mmake test-echo-service\e[0m to test the api"
 
 clean-demo-apps:
 	kubectl delete -f bookinfo.yaml
