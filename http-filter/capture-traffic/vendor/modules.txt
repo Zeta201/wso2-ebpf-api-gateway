@@ -1,0 +1,21 @@
+# github.com/Zeta201/bpfwrapper v0.0.0-20231019041349-e13de5b9fe3e
+## explicit; go 1.21.3
+github.com/Zeta201/bpfwrapper
+# github.com/Zeta201/connections v0.0.0-20231022135257-74e4d497d8d3
+## explicit; go 1.21.3
+github.com/Zeta201/connections
+# github.com/Zeta201/settings v0.0.0-20231019040833-bb12782fbe52
+## explicit; go 1.21.3
+github.com/Zeta201/settings
+# github.com/Zeta201/structs v0.0.0-20231019040215-c23212aea2f9
+## explicit; go 1.21.3
+github.com/Zeta201/structs
+# github.com/iovisor/gobpf v0.2.1-0.20221005153822-16120a1bf4d4
+## explicit; go 1.15
+github.com/iovisor/gobpf/bcc
+github.com/iovisor/gobpf/pkg/cpuonline
+github.com/iovisor/gobpf/pkg/cpupossible
+github.com/iovisor/gobpf/pkg/cpurange
+# golang.org/x/sys v0.13.0
+## explicit; go 1.17
+golang.org/x/sys/unix

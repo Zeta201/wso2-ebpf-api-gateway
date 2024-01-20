@@ -1,0 +1,12 @@
+github.com/Zeta201/bpfwrapper v0.0.0-20231019041349-e13de5b9fe3e h1:FCS96tpFqpGp9wXqdYKWELRACH1rHdKmHnAYJGfl+WI=
+github.com/Zeta201/bpfwrapper v0.0.0-20231019041349-e13de5b9fe3e/go.mod h1:5yVi8A+pDnd2C84j57MRLjvcibRj6o3HKqp1cXUEDcU=
+github.com/Zeta201/connections v0.0.0-20231022135257-74e4d497d8d3 h1:WevBht7BkdGkO0TfIheBwKlnxYutaPGYeTtAbhE8h0k=
+github.com/Zeta201/connections v0.0.0-20231022135257-74e4d497d8d3/go.mod h1:yT+6X8B2WXMcjNO9PtuzJ8fuVJosrK55uPIXsEKsVCs=
+github.com/Zeta201/settings v0.0.0-20231019040833-bb12782fbe52 h1:T+10pp2p9GUhtjcqkI/vZXo8Pr8BNfRIqNJ7zbdlbjk=
+github.com/Zeta201/settings v0.0.0-20231019040833-bb12782fbe52/go.mod h1:451uXHwezvHUjw0uPqLms4MN2szux8OwxGpMemH/nso=
+github.com/Zeta201/structs v0.0.0-20231019040215-c23212aea2f9 h1:NDBNp4/bPj8uuNx6cIBU6Nk6ydZOTpIYNamZHghsKLM=
+github.com/Zeta201/structs v0.0.0-20231019040215-c23212aea2f9/go.mod h1:TJ6UVAMH/sgxHJbzIAQRrGBupjZeYCo/QfvtjRqBdbs=
+github.com/iovisor/gobpf v0.2.1-0.20221005153822-16120a1bf4d4 h1:WpizD4VUT5V+VcaQSvW5BlvFpQYrd2974H9KbiGa5/0=
+github.com/iovisor/gobpf v0.2.1-0.20221005153822-16120a1bf4d4/go.mod h1:WSY9Jj5RhdgC3ci1QaacvbFdQ8cbrEjrpiZbLHLt2s4=
+golang.org/x/sys v0.13.0 h1:Af8nKPmuFypiUBjVoU9V20FiaFXOcuZI21p0ycVYYGE=
+golang.org/x/sys v0.13.0/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=

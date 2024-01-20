@@ -1,0 +1,1 @@
+docker run --privileged --rm -ti -v /usr/src:/usr/src -v /lib/modules:/lib/modules -v /linux-kernel:/linux-kernel -v /sys:/sys  sniffer:1.0 
