@@ -1,18 +1,20 @@
+{{ if or .Values.wso2.apk.dp.enabled .Values.wso2.apk.cp.enabled }}
+
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: enforcer
   namespace: {{ .Release.Namespace}}
   labels: 
-{{ include "apk-helm.pod.selectorLabels" (dict "root" . "app" "gateway" ) | indent 4}}
+{{ include "apk-helm.pod.selectorLabels" (dict "root" . "app" "enforcer" ) | indent 4}}
 spec:
   selector:
     matchLabels:
-{{ include "apk-helm.pod.selectorLabels" (dict "root" . "app" "gateway" ) | indent 6}}
+{{ include "apk-helm.pod.selectorLabels" (dict "root" . "app" "enforcer" ) | indent 6}}
   template:
     metadata:
       labels:
-{{ include "apk-helm.pod.selectorLabels" (dict "root" . "app" "gateway" ) | indent 8}}
+{{ include "apk-helm.pod.selectorLabels" (dict "root" . "app" "enforcer" ) | indent 8}}
     spec:
       containers:
         - name: enforcer-agent
@@ -213,3 +215,4 @@ spec:
           {{ end }}
         - name: tmp
           emptyDir: {}
+{{ end }}
