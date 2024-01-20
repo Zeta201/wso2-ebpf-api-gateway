@@ -2,33 +2,29 @@ ACCESS_TOKEN=$(shell curl -sS -k --location 'https://idp.am.wso2.com:9095/oauth2
 
 current_dir = $(shell pwd)
 
-deploy-apps:
+apk-install:
+	helm install apk ../apk-charts/apk-helm/ 
+
+deploy-demo-apps:
+	@echo "Deploying demo apps..."
+	@kubectl apply -f bookinfo.yaml
+	kubectl wait deployment -l wso2=demo --timeout=5m --for=condition=Available
 	kubectl apply -f backend.yaml
 	kubectl apply -f httproute.yaml
 	kubectl apply -f api.yaml
 
-port-forward:
-	kubectl port-forward svc/apk-wso2-apk-gateway-service 9095:9095
-
-gen-apk-conf:
-	curl -k --location 'https://api.am.wso2.com:9095/api/configurator/1.0.0/apis/generate-configuration' --header 'Host: api.am.wso2.com' --form 'definition=@"/home/dinitha/wso2/envoy-gateway/demo/apk-conf/EmployeeServiceDefinition.json"' > EmployeeService.apk-conf
-
-
-deploy-api:
-	curl -k --location 'https://api.am.wso2.com:9095/api/deployer/1.0.0/apis/deploy' --header 'Host: api.am.wso2.com' --header "Authorization: bearer $(ACCESS_TOKEN)" --form 'apkConfiguration=@"/home/dinitha/wso2/envoy-gateway/demo/apk-conf/EmployeeService.apk-conf"' --form 'definitionFile=@"/home/dinitha/wso2/envoy-gateway/demo/apk-conf/EmployeeServiceDefinition.json"'
+clean-demo-apps:
+	kubectl delete -f bookinfo.yaml
 
 test-wasm:
 	curl -sS -I -k --location 'https://http-bin.gw.wso2.com:9095/details-api/1.0.0/details/1' --header 'Host: details.gw.wso2.com'  --header "Authorization: bearer $(ACCESS_TOKEN)" 
 
-test-echo:
-	curl -sS -k --location 'https://http-bin.gw.wso2.com:9095/http-bin-api/1.0.0/' --header 'Host: http-bin.gw.wso2.com' --header "Authorization: bearer $(ACCESS_TOKEN)" -v
+test-echo-service:
+	@curl -sS -I -k --location 'https://http-bin.gw.wso2.com:9095/http-bin-api/1.0.0/' --header 'Host: http-bin.gw.wso2.com' --header "Authorization: bearer $(ACCESS_TOKEN)" 
 
-test-details:
-	curl -sS -k --location 'https://http-bin.gw.wso2.com:9095/details-api/1.0.0/details/1' --header 'Host: details.gw.wso2.com'  --header "Authorization: bearer $(ACCESS_TOKEN)" -v | jq
-	
-test-api:
-	curl -sS -k --location 'https://default.gw.wso2.com:9095/RW1wbG95ZWVTZXJ2aWNlQVBJMy4xNA/3.14/employee' --header 'Host: default.gw.wso2.com' --header "Authorization: bearer $(ACCESS_TOKEN)" -v
-	
+test-details-service:
+	@curl -sS -k --location 'https://http-bin.gw.wso2.com:9095/details-api/1.0.0/details/1' --header 'Host: details.gw.wso2.com'  --header "Authorization: bearer $(ACCESS_TOKEN)" | jq
+		
 test-ratelimit:
 	- curl -I -sS -k --location 'https://default.gw.wso2.com:9095/RW1wbG95ZWVTZXJ2aWNlQVBJMy4xNA/3.14/employee' --header 'Host: default.gw.wso2.com' --header "Authorization: bearer $(ACCESS_TOKEN)" -v
 	- curl -I -sS -k --location 'https://default.gw.wso2.com:9095/RW1wbG95ZWVTZXJ2aWNlQVBJMy4xNA/3.14/employee' --header 'Host: default.gw.wso2.com' --header "Authorization: bearer $(ACCESS_TOKEN)" -v
