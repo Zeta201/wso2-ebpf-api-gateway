@@ -1,0 +1,12 @@
+go 1.21.3
+
+use (
+	./apk/adapter
+	./apk/common-controller
+	./apk/common-go-libs
+	./apk/management-server
+	./apk/test/integration
+	./http-filter/capture-traffic
+	./http-filter/demo-server
+	./wasm-filter
+)

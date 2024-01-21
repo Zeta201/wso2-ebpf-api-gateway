@@ -48,6 +48,7 @@ type GatewayEvent struct {
 // HandleGatewayLifeCycleEvents handles the Gateway events generated from OperatorDataStore
 func HandleGatewayLifeCycleEvents(ch *chan GatewayEvent) {
 	loggers.LoggerAPKOperator.Info("Operator synchronizer listening for Gateway lifecycle events...")
+	// read gateway events from channel
 	for event := range *ch {
 		if event.Event.GatewayDefinition == nil {
 			loggers.LoggerAPKOperator.ErrorC(logging.PrintError(logging.Error2628, logging.CRITICAL, "Gateway definition is nil in the event : %v", event.EventType))

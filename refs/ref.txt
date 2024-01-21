@@ -1,1 +1,2 @@
 https://github.com/cilium/cilium/issues/27008
+https://vivilearns2code.github.io/k8s/2021/03/11/writing-controllers-for-kubernetes-custom-resources.html
