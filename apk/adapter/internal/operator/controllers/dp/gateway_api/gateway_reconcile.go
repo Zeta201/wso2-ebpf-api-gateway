@@ -10,8 +10,11 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/sirupsen/logrus"
 	"github.com/wso2/apk/adapter/internal/operator/controllers/dp/gateway_api/helpers"
+	"github.com/wso2/apk/adapter/internal/operator/controllers/dp/gateway_api/model"
 	ingestion "github.com/wso2/apk/adapter/internal/operator/controllers/dp/gateway_api/model/igestion"
+	translation "github.com/wso2/apk/adapter/internal/operator/controllers/dp/gateway_api/model/translation/gateway-api"
 	controllerruntime "github.com/wso2/apk/adapter/pkg/controller-runtime"
+	ciliumv2 "github.com/wso2/apk/common-go-libs/apis/cilium.io/v2"
 	dpv1alpha1 "github.com/wso2/apk/common-go-libs/apis/dp/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -19,6 +22,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	gwapiv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 	gwapiv1b1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 )
@@ -98,7 +102,7 @@ func (r *gatewayReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return r.handleReconcileErrorWithStatus(ctx, err, original, gw)
 	}
 
-	ingestion.GatewayAPI(ingestion.Input{
+	httpListeners, tlsListeners := ingestion.GatewayAPI(ingestion.Input{
 		GatewayClass:    *gwc,
 		Gateway:         *gw,
 		HTTPRoutes:      r.filterHTTPRoutesByGateway(ctx, gw, httpRouteList.Items),
@@ -114,7 +118,49 @@ func (r *gatewayReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return r.handleReconcileErrorWithStatus(ctx, err, original, gw)
 	}
 	setGatewayAccepted(gw, true, "Gateway successfully scheduled")
-	return ctrl.Result{}, nil
+
+	// Step 3: Translate the listeners into Cilium model
+	cec, svc, ep, err := translation.NewTranslator(r.SecretsNamespace, r.IdleTimeoutSeconds).Translate(&model.Model{HTTP: httpListeners, TLS: tlsListeners})
+
+	if err != nil {
+		scopedLog.WithError(err).Error("Unable to translate resources")
+		setGatewayAccepted(gw, false, "Unable to translate resources")
+		return r.handleReconcileErrorWithStatus(ctx, err, original, gw)
+	}
+
+	if err = r.ensureService(ctx, svc); err != nil {
+		scopedLog.WithError(err).Error("Unable to create Service")
+		setGatewayAccepted(gw, false, "Unable to create Service resource")
+		return r.handleReconcileErrorWithStatus(ctx, err, original, gw)
+	}
+
+	if err = r.ensureEndpoints(ctx, ep); err != nil {
+		scopedLog.WithError(err).Error("Unable to ensure Endpoints")
+		setGatewayAccepted(gw, false, "Unable to ensure Endpoints resource")
+		return r.handleReconcileErrorWithStatus(ctx, err, original, gw)
+	}
+
+	if err = r.ensureEnvoyConfig(ctx, cec); err != nil {
+		scopedLog.WithError(err).Error("Unable to ensure CiliumEnvoyConfig")
+		setGatewayAccepted(gw, false, "Unable to ensure CEC resource")
+		return r.handleReconcileErrorWithStatus(ctx, err, original, gw)
+	}
+
+	// Step 4: Update the status of the Gateway
+	if err = r.setAddressStatus(ctx, gw); err != nil {
+		scopedLog.WithError(err).Error("Address is not ready")
+		setGatewayProgrammed(gw, false, "Address is not ready")
+		return r.handleReconcileErrorWithStatus(ctx, err, original, gw)
+	}
+
+	setGatewayProgrammed(gw, true, "Gateway successfully reconciled")
+	if err := r.updateStatus(ctx, original, gw); err != nil {
+		return ctrl.Result{}, fmt.Errorf("failed to update Gateway status: %w", err)
+	}
+
+	scopedLog.Info("Successfully reconciled Gateway")
+	return controllerruntime.Success()
+
 }
 
 func (r *gatewayReconciler) handleReconcileErrorWithStatus(ctx context.Context, reconcileErr error, original *gwapiv1b1.Gateway, modified *gwapiv1b1.Gateway) (ctrl.Result, error) {
@@ -396,4 +442,80 @@ func (r *gatewayReconciler) filterHTTPRoutesByListener(ctx context.Context, gw *
 		}
 	}
 	return filtered
+}
+
+func (r *gatewayReconciler) ensureService(ctx context.Context, desired *corev1.Service) error {
+	svc := desired.DeepCopy()
+	_, err := controllerutil.CreateOrPatch(ctx, r.Client, svc, func() error {
+		// Save and restore loadBalancerClass
+		// e.g. if a mutating webhook writes this field
+		lbClass := svc.Spec.LoadBalancerClass
+
+		svc.Spec = desired.Spec
+		svc.OwnerReferences = desired.OwnerReferences
+		setMergedLabelsAndAnnotations(svc, desired)
+
+		// Ignore the loadBalancerClass if it was set by a mutating webhook
+		svc.Spec.LoadBalancerClass = lbClass
+		return nil
+	})
+	return err
+}
+
+func (r *gatewayReconciler) ensureEndpoints(ctx context.Context, desired *corev1.Endpoints) error {
+	ep := desired.DeepCopy()
+	_, err := controllerutil.CreateOrPatch(ctx, r.Client, ep, func() error {
+		ep.Subsets = desired.Subsets
+		ep.OwnerReferences = desired.OwnerReferences
+		setMergedLabelsAndAnnotations(ep, desired)
+		return nil
+	})
+	return err
+}
+
+func (r *gatewayReconciler) ensureEnvoyConfig(ctx context.Context, desired *ciliumv2.CiliumEnvoyConfig) error {
+	cec := desired.DeepCopy()
+	_, err := controllerutil.CreateOrPatch(ctx, r.Client, cec, func() error {
+		cec.Spec = desired.Spec
+		setMergedLabelsAndAnnotations(cec, desired)
+		return nil
+	})
+	return err
+}
+
+func (r *gatewayReconciler) setAddressStatus(ctx context.Context, gw *gwapiv1b1.Gateway) error {
+	svcList := &corev1.ServiceList{}
+	if err := r.Client.List(ctx, svcList, client.MatchingLabels{
+		owningGatewayLabel: gw.GetName(),
+	}); err != nil {
+		return err
+	}
+
+	if len(svcList.Items) == 0 {
+		return fmt.Errorf("no service found")
+	}
+
+	svc := svcList.Items[0]
+	if len(svc.Status.LoadBalancer.Ingress) == 0 {
+		return fmt.Errorf("load balancer status is not ready")
+	}
+
+	var addresses []gwapiv1b1.GatewayAddress
+	for _, s := range svc.Status.LoadBalancer.Ingress {
+		if len(s.IP) != 0 {
+			addresses = append(addresses, gwapiv1b1.GatewayAddress{
+				Type:  GatewayAddressTypePtr(gwapiv1b1.IPAddressType),
+				Value: s.IP,
+			})
+		}
+		if len(s.Hostname) != 0 {
+			addresses = append(addresses, gwapiv1b1.GatewayAddress{
+				Type:  GatewayAddressTypePtr(gwapiv1b1.HostnameAddressType),
+				Value: s.Hostname,
+			})
+		}
+	}
+
+	gw.Status.Addresses = addresses
+	return nil
 }
