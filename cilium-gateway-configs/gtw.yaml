@@ -1,0 +1,95 @@
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: Gateway
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"gateway.networking.k8s.io/v1beta1","kind":"Gateway","metadata":{"annotations":{},"name":"tls-gateway","namespace":"default"},"spec":{"gatewayClassName":"cilium","listeners":[{"hostname":"bookinfo.cilium.rocks","name":"https-1","port":443,"protocol":"HTTPS","tls":{"certificateRefs":[{"kind":"Secret","name":"demo-cert"}]}},{"hostname":"hipstershop.cilium.rocks","name":"https-2","port":443,"protocol":"HTTPS","tls":{"certificateRefs":[{"kind":"Secret","name":"demo-cert"}]}}]}}
+  creationTimestamp: "2024-01-22T07:11:59Z"
+  generation: 1
+  name: tls-gateway
+  namespace: default
+  resourceVersion: "307342"
+  uid: b071f4bb-e597-4dd0-b4d4-ae9bf4fdc272
+spec:
+  gatewayClassName: cilium
+  listeners:
+  - allowedRoutes:
+      namespaces:
+        from: Same
+    hostname: bookinfo.cilium.rocks
+    name: https-1
+    port: 443
+    protocol: HTTPS
+    tls:
+      certificateRefs:
+      - group: ""
+        kind: Secret
+        name: demo-cert
+      mode: Terminate
+  - allowedRoutes:
+      namespaces:
+        from: Same
+    hostname: hipstershop.cilium.rocks
+    name: https-2
+    port: 443
+    protocol: HTTPS
+    tls:
+      certificateRefs:
+      - group: ""
+        kind: Secret
+        name: demo-cert
+      mode: Terminate
+status:
+  addresses:
+  - type: IPAddress
+    value: 172.18.255.200
+  conditions:
+  - lastTransitionTime: "2024-01-22T07:11:59Z"
+    message: Gateway successfully scheduled
+    observedGeneration: 1
+    reason: Accepted
+    status: "True"
+    type: Accepted
+  - lastTransitionTime: "2024-01-22T07:11:59Z"
+    message: Gateway successfully reconciled
+    observedGeneration: 1
+    reason: Programmed
+    status: "True"
+    type: Programmed
+  listeners:
+  - attachedRoutes: 1
+    conditions:
+    - lastTransitionTime: "2024-01-22T07:11:59Z"
+      message: Listener Programmed
+      observedGeneration: 1
+      reason: Programmed
+      status: "True"
+      type: Programmed
+    - lastTransitionTime: "2024-01-22T07:11:59Z"
+      message: Listener Accepted
+      observedGeneration: 1
+      reason: Accepted
+      status: "True"
+      type: Accepted
+    name: https-1
+    supportedKinds:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+  - attachedRoutes: 1
+    conditions:
+    - lastTransitionTime: "2024-01-22T07:11:59Z"
+      message: Listener Programmed
+      observedGeneration: 1
+      reason: Programmed
+      status: "True"
+      type: Programmed
+    - lastTransitionTime: "2024-01-22T07:11:59Z"
+      message: Listener Accepted
+      observedGeneration: 1
+      reason: Accepted
+      status: "True"
+      type: Accepted
+    name: https-2
+    supportedKinds:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
