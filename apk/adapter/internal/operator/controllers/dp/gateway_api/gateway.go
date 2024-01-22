@@ -24,6 +24,7 @@ import (
 )
 
 const owningGatewayLabel = "io.cilium.gateway/owning-gateway"
+const lastTransitionTime = "LastTransitionTime"
 
 // gatewayReconciler reconciles a Gateway object
 type gatewayReconciler struct {
