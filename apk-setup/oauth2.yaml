@@ -1,0 +1,33 @@
+apiVersion: "dp.wso2.com/v1alpha1"
+kind: "Authentication"
+metadata:
+  name: echo-api-authentication
+spec:
+  default:
+    authTypes:
+      oauth2:
+        disabled: true
+      apiKey: []
+    disabled: true
+  targetRef:
+    group: "gateway.networking.k8s.io"
+    kind: "API"
+    name: echo-api
+
+---
+
+apiVersion: "dp.wso2.com/v1alpha1"
+kind: "Authentication"
+metadata:
+  name: details-api-authentication
+spec:
+  default:
+    authTypes:
+      oauth2:
+        disabled: true
+      apiKey: []
+    disabled: true
+  targetRef:
+    group: "gateway.networking.k8s.io"
+    kind: "API"
+    name: details-api

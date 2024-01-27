@@ -115,6 +115,7 @@ spec:
       name: "default/echo-service"
       connect_timeout: 5s
       lb_policy: ROUND_ROBIN
+      #http2_protocol_options: {}
       type: EDS
       outlier_detection:
         split_external_local_origin_errors: true
@@ -125,8 +126,8 @@ spec:
       lb_policy: ROUND_ROBIN
       type: STRICT_DNS
       protocol_selection: USE_CONFIGURED_PROTOCOL
-      http2_protocol_options: {}
-      # dns_lookup_family: V4_ONLY
+      #http2_protocol_options: {}
+      dns_lookup_family: V4_ONLY
       connect_timeout: 10s
       load_assignment:
         cluster_name: ratelimit_service
@@ -135,7 +136,7 @@ spec:
               - endpoint:
                   address:
                     socket_address:
-                      address: 10.96.15.27
+                      address: 10.96.13.38
                       port_value: 8081
 
     - "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
@@ -146,7 +147,7 @@ spec:
         split_external_local_origin_errors: true
         consecutive_local_origin_failure: 2
       dns_lookup_family: V4_ONLY
-      # http2_protocol_options: {}
+      #http2_protocol_options: {}
       connect_timeout: 500s
       load_assignment:
         cluster_name: funnel_auth_cluster
