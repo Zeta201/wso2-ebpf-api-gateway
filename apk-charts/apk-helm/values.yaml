@@ -149,7 +149,7 @@ wso2:
           #   apiNamespaces:
           #     - "apk-v12"
       ratelimiter:
-        enabled: true
+        enabled: false
         deployment:
           resources:
             requests:
@@ -357,7 +357,7 @@ postgresql:
     debug: true
 
 redis:
-  enabled: true
+  enabled: false
   architecture: standalone
   fullnameOverride: redis
   primary:

@@ -2,10 +2,35 @@ TOKEN=$(shell curl -s -X POST https://auth.funnel-labs.io/auth/realms/funnel/pro
 
 enable-jwt-ratelimit:
 	kubectl apply -f ratelimit-jwt/echo.yaml
+	kubectl apply -f ratelimit-jwt/ratelimit-config.yaml
+	kubectl apply -f ratelimit-jwt/redis.yaml
+	kubectl apply -f ratelimit-jwt/ratelimit-deployment.yaml
 
-test-echo-service:
+test-echo-without-token:
+	@echo "Requesting auth token from funnel-labs..."
+	curl -sS -k -I --location 'https://echo.gw.wso2.com:9095/echo-api/1.0.0' --header 'Host: echo.gw.wso2.com' 	
+# @curl -sS  -H "key1:value1" -H "Authorization: Bearer $(ACCESS_TOKEN)" http://$(GAT_ADD)/ -v
+	@curl -sS  -H "key1:value1" -H "Authorization: Bearer $(ACCESS_TOKEN)" http://$(GAT_ADD)/ -v
+	@curl -sS  -H "key1:value1" -H "Authorization: Bearer $(ACCESS_TOKEN)" http://$(GAT_ADD)/ -v
+	@curl -sS  -H "key1:value1" -H "Authorization: Bearer $(ACCESS_TOKEN)" http://$(GAT_ADD)/ -v
+	@curl -sS  -H "key1:value1" -H "Authorization: Bearer $(ACCESS_TOKEN)" http://$(GAT_ADD)/ -v
+	@curl -sS  -H "key1:value1" -H "Authorization: Bearer $(ACCESS_TOKEN)" http://$(GAT_ADD)/ -v
+	@curl -sS  -H "key1:value1" -H "Authorization: Bearer $(ACCESS_TOKEN)" http://$(GAT_ADD)/ -v
+	@curl -sS  -H "key1:value1" -H "Authorization: Bearer $(ACCESS_TOKEN)" http://$(GAT_ADD)/ -v
+
+test-echo-with-token:
 	@echo "Requesting auth token from funnel-labs..."
 	curl -sS -k -I --location 'https://echo.gw.wso2.com:9095/echo-api/1.0.0' --header 'Host: echo.gw.wso2.com' --header "Authorization: Bearer $(TOKEN)"	
+test-ratelimit:
+	curl -sS -k -I --location 'https://echo.gw.wso2.com:9095/echo-api/1.0.0/' --header 'Host: echo.gw.wso2.com' -H "key1:value1" --header "Authorization: Bearer $(TOKEN)"
+	curl -sS -k -I --location 'https://echo.gw.wso2.com:9095/echo-api/1.0.0/' --header 'Host: echo.gw.wso2.com' -H "key1:value1" --header "Authorization: Bearer $(TOKEN)"
+	curl -sS -k -I --location 'https://echo.gw.wso2.com:9095/echo-api/1.0.0/' --header 'Host: echo.gw.wso2.com' -H "key1:value1" --header "Authorization: Bearer $(TOKEN)"
 
 test-details-service:
 	@curl -sS -k --location 'https://details.gw.wso2.com:9095/details-api/1.0.0/details/1' --header 'Host: details.gw.wso2.com' | jq
+
+clean:
+	kubectl delete -f ratelimit-jwt/echo.yaml
+	kubectl delete -f ratelimit-jwt/ratelimit-config.yaml
+	kubectl delete -f ratelimit-jwt/redis.yaml
+	kubectl delete -f ratelimit-jwt/ratelimit-deployment.yaml
