@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ratelimit-config
+data:
+  config.yaml: |
+    domain: app
+    descriptors:
+      - key: key1
+        value: value1
+        rate_limit:
+          requests_per_unit: 1
+          unit: minute
+      - key: key2
+        value: value2
+        descriptors:
+          - key: key3
+            value: value3
+            rate_limit:
+              requests_per_unit: 3
+              unit: minute
+          - key: key4
+            # No value is set, meaning each value gets its own bucket.
+            rate_limit:
+              requests_per_unit: 4
+              unit: minute
