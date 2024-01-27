@@ -1,18 +1,19 @@
 apiVersion: dp.wso2.com/v1alpha1
 kind: API
 metadata:
-  name: http-bin-api
+  name: echo-api
 spec:
-  apiName: HTTP Bin API
+  apiName: Echo API
   organization: apk-system
   apiType: REST
   apiVersion: 1.0.0
-  basePath: /http-bin-api/1.0.0
+  basePath: /echo-api/1.0.0
   production:
     - httpRouteRefs:
-        - prod-http-route-http-bin-api
+        - prod-http-route-echo-api
 
 ---
+
 apiVersion: dp.wso2.com/v1alpha1
 kind: API
 metadata:

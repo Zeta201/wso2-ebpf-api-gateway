@@ -198,7 +198,7 @@ wso2:
               periodSeconds: 20
               failureThreshold: 5
             strategy: RollingUpdate
-            imagePullPolicy: Always
+            imagePullPolicy: IfNotPresent
             image: wso2/apk-router:1.0.0
             # configs:
             #   tls:

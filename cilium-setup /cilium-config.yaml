@@ -7,10 +7,15 @@ externalIPs:
   enabled: true
 nodePort:
   enabled: true
+envoy:
+  enabled: true
 hostPort:
   enabled: true
 envoyConfig:
   enabled: true
+loadBalancer:
+  l7:
+    backend: envoy
 image:
   pullPolicy: IfNotPresent
 ipam:
@@ -18,3 +23,6 @@ ipam:
 hubble:
   relay:
     enabled: true
+
+
+

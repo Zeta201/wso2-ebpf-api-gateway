@@ -1,12 +1,11 @@
 apiVersion: dp.wso2.com/v1alpha1
 kind: Backend
 metadata:
-  name: http-bin-backend
+  name: echo-backend
 spec:
   services:
     - host: echo-service.default
       port: 8080
-
 ---
 apiVersion: dp.wso2.com/v1alpha1
 kind: Backend
