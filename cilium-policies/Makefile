@@ -1,5 +1,6 @@
 TOKEN=$(shell curl -s -X POST https://auth.funnel-labs.io/auth/realms/funnel/protocol/openid-connect/token -d "client_id=service&username=demo&password=abcd1234&grant_type=password" | jq -r '.access_token')
-
+AGENT1 := $(shell kubectl get pods -n kube-system -l app.kubernetes.io/name=cilium-agent -o 'jsonpath={.items[0].metadata.name}')
+AGENT2 := $(shell kubectl get pods -n kube-system -l app.kubernetes.io/name=cilium-agent -o 'jsonpath={.items[1].metadata.name}')
 enable-jwt-ratelimit:
 	kubectl apply -f ratelimit-jwt/echo.yaml
 	kubectl apply -f ratelimit-jwt/ratelimit-config.yaml
@@ -28,6 +29,13 @@ test-ratelimit:
 
 test-details-service:
 	@curl -sS -k --location 'https://details.gw.wso2.com:9095/details-api/1.0.0/details/1' --header 'Host: details.gw.wso2.com' | jq
+
+test-wasm:
+	@curl -sS -k --location 'https://details.gw.wso2.com:9095/details-api/1.0.0/details/1' --header 'Host: details.gw.wso2.com' -I
+
+copy-wasm:
+	- kubectl cp ./wasm/optimized.wasm kube-system/$(AGENT1):/usr/bin
+	- kubectl cp ./wasm/optimized.wasm kube-system/$(AGENT2):/usr/bin
 
 clean:
 	kubectl delete -f ratelimit-jwt/echo.yaml
