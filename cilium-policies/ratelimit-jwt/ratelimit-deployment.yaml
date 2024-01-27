@@ -5,6 +5,7 @@ metadata:
   labels:
     app: ratelimit
 spec:
+  clusterIP: 10.96.0.253
   ports:
     - name: http-port
       port: 8080
