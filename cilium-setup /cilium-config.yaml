@@ -7,8 +7,6 @@ externalIPs:
   enabled: true
 nodePort:
   enabled: true
-envoy:
-  enabled: true
 hostPort:
   enabled: true
 envoyConfig:
