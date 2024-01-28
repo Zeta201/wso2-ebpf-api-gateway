@@ -6,7 +6,8 @@ enable-jwt-ratelimit:
 	kubectl apply -f ratelimit-jwt/ratelimit-config.yaml
 	kubectl apply -f ratelimit-jwt/redis.yaml
 	kubectl apply -f ratelimit-jwt/ratelimit-deployment.yaml
-
+enable-wasm:
+	kubectl apply -f wasm/wasm.yaml
 test-echo-without-token:
 	@echo "Requesting auth token from funnel-labs..."
 	curl -sS -k -I --location 'https://echo.gw.wso2.com:9095/echo-api/1.0.0' --header 'Host: echo.gw.wso2.com' 	
@@ -42,3 +43,4 @@ clean:
 	kubectl delete -f ratelimit-jwt/ratelimit-config.yaml
 	kubectl delete -f ratelimit-jwt/redis.yaml
 	kubectl delete -f ratelimit-jwt/ratelimit-deployment.yaml
+	kubectl delete -f wasm/wasm.yaml

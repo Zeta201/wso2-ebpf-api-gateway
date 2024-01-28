@@ -40,7 +40,7 @@ var basicAPICiliumEnvoyConfig = &ciliumv2.CiliumEnvoyConfig{
 				APIVersion: "dp.wso2.com/v1alpha1",
 				Kind:       "API",
 				Name:       "http-bin-api",
-				Controller: AddressOf(true),
+				Controller: addressOf(true),
 			},
 		},
 	},

@@ -247,6 +247,7 @@ func (apiReconciler *APIReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 			*apiReconciler.ch <- synchronizer.APIEvent{EventType: constants.Delete, Events: []synchronizer.APIState{apiState}}
 			return ctrl.Result{}, nil
 		}
+
 		loggers.LoggerAPKOperator.Warnf("Api CR related to the reconcile request with key: %s returned error. Assuming API with API UUID : %v is already deleted, hence ignoring the error : %v",
 			req.NamespacedName.String(), string(apiCR.ObjectMeta.UID), err)
 		return ctrl.Result{}, nil
@@ -259,6 +260,7 @@ func (apiReconciler *APIReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	} else if apiState != nil {
 		loggers.LoggerAPKOperator.Infof("Ready to deploy CRs for API in namespace : %s with API UUID : %v, %v",
 			req.NamespacedName.String(), string(apiCR.ObjectMeta.UID), err)
+
 		*apiReconciler.ch <- *apiState
 	}
 	return ctrl.Result{}, nil
@@ -375,6 +377,21 @@ func (apiReconciler *APIReconciler) resolveAPIRefs(ctx context.Context, api dpv1
 			return nil, fmt.Errorf("no gateway available for httpRouteref %s in namespace :%s has not found",
 				prodRouteRefs, namespace)
 		}
+
+		// enable jwt by generating a cec for all the services in the api
+
+		// get all services for the api
+		httpRoutes := apiState.ProdHTTPRoute.DeepCopy().HTTPRoutePartitions
+
+		services, err := apiReconciler.getServicesForAPI(ctx, apiState, httpRoutes, api)
+
+		if err != nil {
+			return nil, fmt.Errorf("no services available for api")
+		}
+
+		svc := translateService(services)
+		_ = generateJWTEnvoyConfig(svc, apiState)
+
 	}
 
 	if len(sandRouteRefs) > 0 && apiState.APIDefinition.Spec.APIType == "REST" {
