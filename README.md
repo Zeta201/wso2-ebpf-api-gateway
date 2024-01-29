@@ -175,23 +175,25 @@ down to the Ethernet Level and Loopback and back up to the Envoy Proxy and back 
 network interface. This is using TCP which was written for lossy environments. Below diagram
 highlights this fact.
 <picture>
-<source media="(prefers-color-scheme: light)" srcset="https://live.staticflickr.com/65535/53454815143_08bd23886d.jpg" width="300" alt="Cilium Logo">
-<img src="https://live.staticflickr.com/65535/53454815143_08bd23886d.jpg" width="30%" alt="Cilium Logo">
-</picture>
-But in this system, I leverage Cilium capabilities which will detect that the service is
-communicating with its local sidecar, and it will simply copy the data from one socket to the
-other achieving Unix Domain Socket Speed on TCP sockets as given below.
-<picture>
-<source media="(prefers-color-scheme: light)" srcset="https://live.staticflickr.com/65535/53453765597_afed2c37d4.jpg" width="300" alt="Cilium Logo">
-<img src="https://live.staticflickr.com/65535/53453765597_afed2c37d4.jpg" width="30%" alt="Cilium Logo">
-</picture>
-Users can achieve a performance improvement of 3-4 times faster and persistent HTTP
-connections as given below.
-
+   <source media="(prefers-color-scheme: light)" srcset="https://live.staticflickr.com/65535/53454815143_08bd23886d.jpg" width="300" alt="Cilium Logo">
+   <img src="https://live.staticflickr.com/65535/53454815143_08bd23886d.jpg" width="30%" alt="Cilium Logo">
+   </picture>
+   <picture>
+   <source media="(prefers-color-scheme: light)" srcset="https://live.staticflickr.com/65535/53453765597_afed2c37d4.jpg" width="300" alt="Cilium Logo">
+   <img src="https://live.staticflickr.com/65535/53453765597_afed2c37d4.jpg" width="30%" alt="Cilium Logo">
+   </picture>
    <picture>
       <source media="(prefers-color-scheme: light)" srcset="https://live.staticflickr.com/65535/53454815153_60932f74db.jpg" width=30%" alt="Cilium Logo">
       <img src="https://live.staticflickr.com/65535/53454815153_60932f74db.jpg" width="30%" alt="Cilium Logo">
    </picture>
+
+But in this system, I leverage Cilium capabilities which will detect that the service is
+communicating with its local sidecar, and it will simply copy the data from one socket to the
+other achieving Unix Domain Socket Speed on TCP sockets as given below.
+
+Users can achieve a performance improvement of 3-4 times faster and persistent HTTP
+connections as given below.
+
 
 Users can also use Hubble under Cilium CNI Layer to gain a deep observability and visibility for
 logging, tracing, and monitoring connections under this setup.
@@ -224,4 +226,3 @@ This is where the BPF comes in. Cilium uses socket level BPF and it will detect 
 ## Siecar Injection Performance
 
 Y-axis is the number of requests per second the the X- axis is the number of persistent connections. Typically if you're running service mesh or you're running with with a sidecar the app does not open a new connection for every request. Most networking libraries will maintain connection pools and will reuse the same TCP connection multiple times for new requests. With Cilium. The above graph indicates 3 cases. Blue bar indicates the IP tables redirect. This is what you get when you deploy Istio Service Mesh. Orange is the case where you point the the app to the sidecar so you don't need the IP tables redirect rule so the difference between blue and orange is already that the cost of a single IP tables redirect. Then Yellow is Cilium accelerating this transparently and it's somewhere between 3-4X faster.
-
