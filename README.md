@@ -223,6 +223,6 @@ staying on the same node packets are not getting lost. It's basically data that 
 
 This is where the BPF comes in. Cilium uses socket level BPF and it will detect that your application is talking to the sidecar locally so it will simply copy the data from one socket to the other transparently acclerating envoy.
 
-## Siecar Injection Performance
+## Sidecar Injection Performance
 
 Y-axis is the number of requests per second the the X- axis is the number of persistent connections. Typically if you're running service mesh or you're running with with a sidecar the app does not open a new connection for every request. Most networking libraries will maintain connection pools and will reuse the same TCP connection multiple times for new requests. With Cilium. The above graph indicates 3 cases. Blue bar indicates the IP tables redirect. This is what you get when you deploy Istio Service Mesh. Orange is the case where you point the the app to the sidecar so you don't need the IP tables redirect rule so the difference between blue and orange is already that the cost of a single IP tables redirect. Then Yellow is Cilium accelerating this transparently and it's somewhere between 3-4X faster.
