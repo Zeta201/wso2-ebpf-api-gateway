@@ -176,21 +176,21 @@ network interface. This is using TCP which was written for lossy environments. B
 highlights this fact.
 <picture>
 <source media="(prefers-color-scheme: light)" srcset="https://live.staticflickr.com/65535/53454815143_08bd23886d.jpg" width="300" alt="Cilium Logo">
-<img src="https://live.staticflickr.com/65535/53454815143_08bd23886d.jpg" width="100%" alt="Cilium Logo">
+<img src="https://live.staticflickr.com/65535/53454815143_08bd23886d.jpg" width="30%" alt="Cilium Logo">
 </picture>
 But in this system, I leverage Cilium capabilities which will detect that the service is
 communicating with its local sidecar, and it will simply copy the data from one socket to the
 other achieving Unix Domain Socket Speed on TCP sockets as given below.
 <picture>
 <source media="(prefers-color-scheme: light)" srcset="https://live.staticflickr.com/65535/53453765597_afed2c37d4.jpg" width="300" alt="Cilium Logo">
-<img src="https://live.staticflickr.com/65535/53453765597_afed2c37d4.jpg" width="100%" alt="Cilium Logo">
+<img src="https://live.staticflickr.com/65535/53453765597_afed2c37d4.jpg" width="30%" alt="Cilium Logo">
 </picture>
 Users can achieve a performance improvement of 3-4 times faster and persistent HTTP
 connections as given below.
 
    <picture>
-      <source media="(prefers-color-scheme: light)" srcset="https://live.staticflickr.com/65535/53454815153_60932f74db.jpg" width=100%" alt="Cilium Logo">
-      <img src="https://live.staticflickr.com/65535/53454815153_60932f74db.jpg" width="100%" alt="Cilium Logo">
+      <source media="(prefers-color-scheme: light)" srcset="https://live.staticflickr.com/65535/53454815153_60932f74db.jpg" width=30%" alt="Cilium Logo">
+      <img src="https://live.staticflickr.com/65535/53454815153_60932f74db.jpg" width="30%" alt="Cilium Logo">
    </picture>
 
 Users can also use Hubble under Cilium CNI Layer to gain a deep observability and visibility for
