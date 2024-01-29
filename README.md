@@ -174,17 +174,17 @@ Proxy. If the user is running Istio service mesh, all the connections go through
 down to the Ethernet Level and Loopback and back up to the Envoy Proxy and back out to the
 network interface. This is using TCP which was written for lossy environments. Below diagram
 highlights this fact.
-<picture>
-   <source media="(prefers-color-scheme: light)" srcset="https://live.staticflickr.com/65535/53454815143_08bd23886d.jpg" width="300" alt="Cilium Logo">
-   <img src="https://live.staticflickr.com/65535/53454815143_08bd23886d.jpg" width="30%" alt="Cilium Logo">
+   <picture>
+      <source media="(prefers-color-scheme: light)" srcset="https://live.staticflickr.com/65535/53454815143_08bd23886d.jpg" alt="Cilium Logo">
+      <img src="https://live.staticflickr.com/65535/53454815143_08bd23886d.jpg" width="30%" height="280px" alt="Cilium Logo">
    </picture>
    <picture>
-   <source media="(prefers-color-scheme: light)" srcset="https://live.staticflickr.com/65535/53453765597_afed2c37d4.jpg" width="300" alt="Cilium Logo">
-   <img src="https://live.staticflickr.com/65535/53453765597_afed2c37d4.jpg" width="30%" alt="Cilium Logo">
+      <source media="(prefers-color-scheme: light)" srcset="https://live.staticflickr.com/65535/53453765597_afed2c37d4.jpg" alt="Cilium Logo">
+      <img src="https://live.staticflickr.com/65535/53453765597_afed2c37d4.jpg" width="30%" height="280px" alt="Cilium Logo">
    </picture>
    <picture>
-      <source media="(prefers-color-scheme: light)" srcset="https://live.staticflickr.com/65535/53454815153_60932f74db.jpg" width=30%" alt="Cilium Logo">
-      <img src="https://live.staticflickr.com/65535/53454815153_60932f74db.jpg" width="30%" alt="Cilium Logo">
+      <source media="(prefers-color-scheme: light)" srcset="https://live.staticflickr.com/65535/53454815153_60932f74db.jpg" alt="Cilium Logo">
+      <img src="https://live.staticflickr.com/65535/53454815153_60932f74db.jpg" width="30%" height="280px" alt="Cilium Logo">
    </picture>
 
 But in this system, I leverage Cilium capabilities which will detect that the service is
