@@ -1,0 +1,1402 @@
+Overall it looks something like this
+
+where we have two services and they use
+
+a sidecar on each side to communicate
+
+with each other so instead of services
+
+talking through the network directly we
+
+basically inject the sidecar proxy
+
+inside of each part which then talks on
+
+behalf of the service this allows for
+
+example to do retry so if the service at
+
+the other end responds with a 5x HTTP we
+
+can for example retry and do this again
+
+right it allows you to trace again so
+
+y'all y'all know about the the promise
+
+and the values that instead of service
+
+match can provide and if you look at
+
+this picture it looks pretty simple
+
+looks neat it's a good architecture if
+
+you now look at what's actually going on
+
+under the hood you might see where where
+
+some of the where some of the
+
+performance overhead is coming from and
+
+this has nothing to do with the proxies
+
+themselves it's all outside of the proxy
+
+it's how the proxy is being put into the
+
+picture so first of all what do all
+
+applications use to talk to each other
+
+they use sockets right so the service
+
+the application opens a socket and makes
+
+a makes an outgoing HTTP request the
+
+citecar itself the proxy listens on a
+
+port it's also a socket I then will will
+
+open a second connection on behalf of
+
+the of the application that's another
+
+socket and then the same this same
+
+picture is on the receiving side so we
+
+already went from two sockets to six
+
+sockets because if the if the services
+
+will be talking to each other obviously
+
+would also have sockets but only two of
+
+them then what do these sockets talk
+
+they talk TCP so we're going through the
+
+TCP stack the kernel itself is not able
+
+to do forward Alfre only which means
+
+that it cannot actually four about TCP
+
+only it needs a layer 2 protocol as well
+
+and basically we're still talking
+
+Ethernet here so yes let's add Ethernet
+
+to the mix so it's maybe a bit
+
+surprising that an application is
+
+talking to a sidecar and Ethernet is
+
+involved but even that so Linux is not
+
+Linux does everything the files and
+
+devices so worried where are my devices
+
+let's add the devices to the mix so from
+
+from app to sidecar this could be the
+
+loopback right this is the case where
+
+you tell the site well where you tell
+
+your application to talk to the sidecar
+
+directly so let's say the sidecar is
+
+listening on port 4000 you're telling
+
+the application instead of talking
+
+anywhere talk to 127 or 140 thousand
+
+talk directly to the sidecar this is
+
+this model even in this model we already
+
+going through the TCP stack 6 times
+
+we're going through Ethernet stack 6
+
+times we're going through four different
+
+devices all of this adds a lot of
+
+latency it's literally running through
+
+millions
+
+of C code inside of the Windows kernel
+
+if you want to do this transparently so
+
+without having to tell the application
+
+to talk to the site core we have to add
+
+something else and this is an IP tables
+
+rule so if for example if you deploy SEO
+
+right now of the box you get an IP
+
+tables redirect rule that's running
+
+inside of the part that will redirect
+
+all traffic that's that wants to exit
+
+the container that wants to exit the
+
+part and redirects that back into the
+
+sidecar this is this IP tables rule
+
+we're not going through these rule once
+
+we're actually going through this rule
+
+twice because when the site card and
+
+opens the second part of the code actual
+
+real connection that goes out that also
+
+goes through that IP tables role that
+
+rule will actually have an exception and
+
+says well if you are coming from the
+
+sidecar then I'm not redirecting you
+
+everything else gets redirected to the
+
+sidecar so we're actually hitting this
+
+cost twice and then obviously on the on
+
+the incoming side as well any packet any
+
+connection that goes into a cycle into a
+
+part gets transparently redirected to
+
+the sidecar why do we why do like this
+
+is all like the site cards always in the
+
+end in the same pod or is all isn't
+
+running next to the applications always
+
+on the same note why do we use why do
+
+you use Ethernet why do we use TCP TCP
+
+has been designed to survive nuclear
+
+blasts right so TCP has pins has been
+
+designed to survive lossy environments
+
+where packets can get lost if you're
+
+staying on the same note packets are not
+
+getting lost in fact it's basically
+
+choose data it's data that we have to
+
+move from one from the app to the
+
+sidecar why do we use TCP and Ethernet
+
+yeah so why do we use it I don't really
+
+know because it's possible to do it
+
+without it and this is where BPF and
+
+Salim comes in so in this case where you
+
+run the sidecar the sidecar model for
+
+example if on why we noticed that both
+
+the application and the sidecar on the
+
+same note which is taking TCP Ethernet
+
+and all of this out of the picture right
+
+we have two local sockets and basically
+
+the one saw
+
+is trying to send data doesn't need to
+
+be TCP and the only intent we have is
+
+move that data to the other socket so
+
+that why don't we just move it over
+
+that's what we do with BPF right this is
+
+this is the socket level BPF that we
+
+have added to the Linux kernel that
+
+allows you to do this obviously
+
+simplifies or it it enhances the
+
+performance a lot because we're no
+
+longer having to go through the TCP
+
+stack and so on and the beauty of this
+
+is it does not require any changes at
+
+all because the application is still
+
+talking TCP the sidecar is still
+
+listening as a TCP socket so nothing has
+
+to change right you can run this as is
+
+you bring cilium into the picture and
+
+will accelerate this transparently for
+
+you so I like what does that bring us so
+
+we have we have non measurements and
+
+kind of at the same moment are the same
+
+the same but the yeah we're in the same
+
+moment as Facebook that we have to
+
+measure this again this cannot be true
+
+like let's meet let's remesh sure we
+
+cannot just publish these numbers it's
+
+too good to be true
+
+so we've measured three three cases blue
+
+is the IP tables redirect that's
+
+basically when you deploy is two out of
+
+the box this is what you would get right
+
+now orange is the case where you point
+
+the the app to the sidecar so you don't
+
+need the IP tables redirect rule so the
+
+difference between blue and orange is
+
+already that single IP table the cost of
+
+a single IP tables redirect it's quite
+
+massive already and then or the yellow
+
+is solium accelerating this
+
+transparently and it's somewhere between
+
+3 3 to 4x faster if you're wondering
+
+what the X bar here is although the Y
+
+order the y axis is a it's the number of
+
+requests per second the the x axis is
+
+the number of persistent connections
+
+typically if you're running service mesh
+
+or you're running with with a sidecar
+
+the app does not open a new connection
+
+for every request like most most most
+
+networking libraries will maintain
+
+connection pools and will reuse the same
+
+TCP connection multiple times for for
+
+for new requests so the x-axis is the
+
+number of persistent connections that
+
+we're using in parallel so yes
+
+measurement we found out that we need
+
+about 50 parallel persistent connections
+
+to actually max out the machine and this
+
+is just the fact that your systems
+
+hasn't has multiple cores so in order to
+
+maximize use of the machine we have to
+
+do things in parallel so how do we do
+
+this
+
+specifically I like what it what are
+
+they if you look under the hood what we
+
+found out we wanted to make as minimal
+
+changes as possible first of all we did
+
+not want to emulate TCP or anything like
+
+that so what we decided to do is we will
+
+keep the existing behavior for the
+
+handshake so for the syn for the TCP
+
+handshakes with all no for the non
+
+networking people this is basically the
+
+initial three packets that are exchanged
+
+between sender and receiver to basically
+
+confirm to build up a connection these
+
+are three packets are being sent
+
+initially and after this a TCP
+
+connection is established so this still
+
+goes through the existing path this is
+
+basically just the connection building
+
+up but if you're using persistent
+
+connections we call it we're paying this
+
+cost once and after that we don't pay it
+
+anymore and then only in the data phase
+
+where we actually exchange data in both
+
+directions do we use the acceleration
+
+this means all TCP options all flags all
+
+of this just continues working it's
+
+completely transparent it's only the
+
+data that gets accelerated we're even
+
+working on making it possible that you
+
+can still use for example TCP timestamps
+
+this still works but the data is still
+
+getting accelerated this means there's
+
+no changes to the application required
+
+right if your if your application is
+
+using TCP sockets you can transparently
+
+redirect to a sidecar to for example
+
+envoy envoy does also not need any
+
+changes it will simply benefit from this
+
+acceleration but wait this is actually
+
+not sidecar specific at all this will
+
+work across any to connect or any
+
+connections that connects to local
+
+applications so it could be two
+
+containers talking on the same note the
+
+sidecar is just it's a perfect example
+
+because in this scenario you always have
+
+two containers or two applications talk
+
+talking to each other but it will
+
+actually work as well if you have two
+
+containers talking to each other you're
+
+running psyllium they will just get this
+
+boot boost automatically so this also
+
+works across container namespaces right
+
+the kernel itself is not isolated in
+
+that sense it actually sees all the
+
+sockets we will still like respect
+
+namespace isolation from a security
+
+perspective but if they are allowed to
+
+talk
+
+we will accelerate this so it will
+
+actually benefit from this not even in
+
+this in the sidecar case but also
+
+interest the plain forward in case you
+
+are too local applications or two local
+
+containers are talking to each other so
+
+how do I get this you can run psyllium
+
+right this is this is the way to get
+
+this psyllium brings BPF to cuba
+
+Nettie's and other orchestration systems
+
+I will talk a little bit about PPF or
+
+about süleyman its scope in the next
+
+slide but the main requirements to get
+
+this is for psyllium itself you need to
+
+run a Linux kernel that is at least four
+
+point nine most distributions for
+
+example if you're running Ubuntu 1804
+
+you'll get this out of the box chorus
+
+you get this out of the box for us for
+
+all our distributions that say Punto
+
+1604 they are kernels so you may you may
+
+there's official packages so you may
+
+need to reboot once to just run a more
+
+recent kernel that the default one for
+
+example Google announced or told us this
+
+week that the container optimized Linux
+
+image that they're using for chica is
+
+now also unable to run this and so on so
+
+the most most distres will bring you
+
+this if you want to use the side core
+
+acceleration that's a more recent
+
+feature that is in for sixteen right so
+
+as you can see on this slide psyllium is
+
+basically taking orchestration or is
+
+combining or translating orchestration
+
+system concepts like like a policy
+
+networking load balancing and translates
+
+that into BPF programs that get attached
+
+to containers to parts so it's basically
+
+doing the magic so you don't have to
+
+know about and how to you don't need to
+
+know how to be right BPF programs we are
+
+doing this for you
+
+but basically implement the
+
+non-standardized
+
+orchestration system standards like for
+
+example C&I or network policy or
+
+accumulated services and so on
+
+so what exactly does sodium and I've
+
+tried to compress this into one slide
+
+salam in a nutshell so we have a we have
+
+a release we released 1.0 a couple of
+
+weeks back we're now at 1 0 1 we have
+
+this highly efficient BPF based data
+
+path it's fully distributed so there's
+
+no centralized control plane anyway like
+
+all the functionality runs on each node
+
+so it scales out really well we have
+
+this service mesh data pay data paths
+
+which is what I just talked about this
+
+acceleration of the sidecar we have a
+
+CNI and the CMM that's the the docker
+
+lip network model so we support these
+
+two models CNI gives us kubernetes of
+
+course gives us the more recent version
+
+of foundry gives us mezzos and so on
+
+we implement network security and we do
+
+this both at packet level so this is the
+
+existing traditional layer 3 layer for
+
+this part can talk to this part on the
+
+on port 80 that's kind of the packet
+
+based we also have the API level so the
+
+kind of this the world of API calls that
+
+the eastery on service magic cares about
+
+so not saying that yes two parts can
+
+talk to each other but they can only do
+
+a certain API calls for example only I
+
+get to slash public but I get to slash
+
+private should be denied so I can
+
+restrict access to my API and shrink the
+
+API service we can do this for HTTP we
+
+can do is for T RPC Kafka and then more
+
+and more more are coming we're having
+
+very interesting conversation with Matz
+
+how we can simplify and lower the
+
+barrier to add more and more protocols
+
+into envoy on the security side we can
+
+do traditional IP cider based
+
+enforcement that means you can say I
+
+want to talk to this IP or this block of
+
+IPs
+
+all cluster in terminal communica or all
+
+cluster internal security is label based
+
+like all other a lot of plugins as well
+
+that's implementing the cube analysis or
+
+security the main difference is that
+
+we're using identity based enforcement
+
+so we're not basically mapping labels to
+
+IPs and then whitelist in individual IPS
+
+we're actually generating a strong
+
+identity and when a part sends out
+
+packets we're attaching the identity to
+
+the packet and then we're verifying this
+
+identity instead of relying on
+
+source IP addresses so similar to mutual
+
+TLS I think this next wave of security
+
+has to be cannot be IP based it has to
+
+be identity based then we do distributed
+
+and scalable load balancing on l3 l4
+
+so basically complementing a service
+
+mesh which would do this primarily l7
+
+they can also do well for of course
+
+we're doing this in a very efficient way
+
+so we're replacing the IP tables and I
+
+previous version of IP V of Q proxy
+
+we're losing doing this in BPF I know in
+
+a way that actually scales to thousands
+
+and thousands of services the
+
+performance is the same whether you're
+
+running one service a thousand ten
+
+thousand or five hundred thousand
+
+services it's a very efficient hash
+
+table based lookup we have a very
+
+simplified networking model so we're
+
+trying to keep networking as simple as
+
+possible
+
+we support or an overlay mode which is
+
+kind of V excellent and Eve paste we
+
+also support a direct routing mode where
+
+you can run your routing demons we're
+
+trying to not be not actually restricted
+
+to one specific routing daemon so you
+
+could run something like like a cube
+
+router you could you could run zebra
+
+whatever this this will function and
+
+then in then one of the next releases
+
+will have delegation to another
+
+networking plug-in which means that
+
+maybe you're already running flannel and
+
+you don't want to change this but you
+
+still want to have the benefits of for
+
+example the service mesh acceleration
+
+you want the scalable lopa lansing with
+
+sodium you can run sodium on top of
+
+other networking products and then we
+
+have visibility and tracing this is
+
+basically bringing the power of PPF in
+
+terms of profiling and tracing and
+
+bringing that as well so that is
+
+certainly the the least advanced feature
+
+that what we have right now but is it
+
+will be the focus in forthcoming
+
+releases but wait actually gets better
+
+the exciting part is coming now and it's
+
+a little bit scary maybe let's see so
+
+TLS uses in-service mash very simple
+
+sidecar is running on both sides right
+
+the side cause are implementing the
+
+actual encryption
+
+service to sidecar is unencrypted the
+
+sidecar can see HTTP requests can for
+
+example do
+
+path based routing and
+
+to hostname based routing and so on
+
+simple we all understand this
+
+what are we how does this look like if
+
+you're talking to external services
+
+let's say a github API or a payment
+
+service API something that's outside of
+
+the cluster in that case the application
+
+is obviously using TLS encryption and
+
+it's encrypted in the application itself
+
+right the application is using SSL to
+
+talk to get up using HTTPS it's
+
+definitely not gonna send your password
+
+clear text across the internet right so
+
+how does that work with the sidecar
+
+because at this point the HTTP payload
+
+is already encrypted how do we solve
+
+this I think there are two options the
+
+first option is we could actually inject
+
+a root CA that basically allows the
+
+sidecar to decrypt so the sidecar will
+
+basically behave as if if it was get up
+
+calm as an API this I've heard this a
+
+couple of times this week there people
+
+are thinking about this because this is
+
+kind of if you don't know about the next
+
+step that I'm about to explain this is
+
+kind of the obvious hack that we could
+
+put in place I'm seeing like hats no no
+
+no no yeah no it's not what we want so
+
+that's actually a beautiful solution
+
+that we can provide in the future which
+
+is K TLS which stands for kernel TLS so
+
+Katie Ellis is actually not that
+
+complicated what it does is the kernel
+
+already has a very rich set of ciphers
+
+for crypto for IPSec so it can already
+
+do encryption so what Katie Ellis does
+
+is it keeps all the complicated logic of
+
+negotiation keys and all the control
+
+playing all day the handshake all of
+
+that remains in the SSL library but that
+
+once the key is known the keys pushed
+
+down to the kernel and the kernel will
+
+do the symmetric encryption part the
+
+actual encrypt encryption of that data
+
+this was not added because of like of
+
+this use case it was actually added
+
+because a lot of static content
+
+providers they saw a three four percent
+
+CPU reduction of this model of this
+
+method if you are streaming video data
+
+over SSL three to four percent C
+
+production really matters right you have
+
+you
+
+just need less less machines so
+
+basically the encryption point moves
+
+from the SSL library to the socket layer
+
+inside of the kernel let's combine this
+
+so this brings deep the previous picture
+
+back which is kind of application socket
+
+sidecar what if we actually delayed is
+
+further and do the encryption after the
+
+sidecar so we have the key and at this
+
+point we know it's going into the
+
+sidecar what if we don't encrypt there
+
+but only encrypt after it went through
+
+the sidecar in this case the picture
+
+will look something like this even
+
+though we are talking to an external
+
+service we're not changing the root CA
+
+suet CA in any in any way the sidecar or
+
+the app to sidecar communication will be
+
+unencrypted the sidecar can see the
+
+plaintext HTTP header can do routing and
+
+so on but when it leaves the sidecar it
+
+gets encrypted if the key that was
+
+negotiated by the application in open
+
+SSL or in whatever SSL library you are
+
+using that solves the problem
+
+alright and the kernel is is a trusted
+
+entity and does this for us we can trust
+
+the kernel to do this it's just it's
+
+delaying it's making the sidecar part of
+
+the application that's using SSL all
+
+right so it's it solved this and it does
+
+not even require us to decrypt like even
+
+an option one if we go back even if we
+
+would want to do this you would have to
+
+decrypt at that sidecar and then
+
+re-encrypt again which is obviously a
+
+massive latency and CPU over overhead
+
+that you're adding so what do I need to
+
+get Katie Ellis in order to get Keith
+
+Katie alas it was merged a couple of
+
+weeks ago so it was a joint coloration
+
+of Facebook and Google and some others
+
+you will need a recent kernel and you
+
+will need an open SSL or an SSL library
+
+that knows about K TLS which also means
+
+you actually need to opt in to this so
+
+if you don't want this you don't need
+
+you can you can basically say I don't
+
+want to grant the kernel this capability
+
+you need to opt in to this right which
+
+means that the kernel cannot just
+
+magically see into your data if the
+
+application encrypts it the application
+
+must allow this defer
+
+operation of the encryption I think
+
+right now the the support is baked into
+
+blue TLS and open SSL and I know that
+
+support is coming for the canoe work for
+
+the NGO version of an officer ssl
+
+library and also for boring ssl so
+
+basically this gives us like sidecar for
+
+TLS encrypted connections without CIA
+
+injection without without decryption
+
+when we basically thought about this I
+
+had this wow moment like kind of this
+
+will change a lot of things because in
+
+the end it's like things are always
+
+simple if you control both sides but a
+
+lot of communication it will be to
+
+external services so how do we how do we
+
+for example do retries to an external
+
+service how do we how do we do retries
+
+to a get up api without actually baking
+
+this into the application and I think
+
+this will basically open up sidecar
+
+functionality to the world of external
+
+API calls or the world of external
+
+services excellent what day is today so
+
+today is May 4th though may the 4th be
+
+with you so we have a little present
+
+because we're actually very very very
+
+close to 2,000 stars let me pull it up I
+
+wanna do a quick let me refresh it so
+
+what we'll do is the following
+
+I have the following little present here
+
+which is we're in Denmark so this is
+
+Lego this is a Star Wars Lego spaceship
+
+and if you are storing the cilium repo
+
+in the next 10 minutes let's say left 5
+
+minutes in the next 5 minutes we will
+
+pick a random star person or giveaway
+
+this Lego box
+
+so before you soil stops not don't don't
+
+start yet I have to refresh first we'll
+
+look at who starred last and then it
+
+will will count the number of stars
+
+alright alright so Aleksandra is the
+
+latest person that I'm really sound
+
+sorry if you're in the room but you
+
+don't have a chance to win it so if you
+
+store in the next 5 minutes we'll count
+
+the number of new stars and we'll give
+
+up a this this Lego box if that said I'm
+
+opening up for questions you have
+
+questions please come
+
+to the microphone and ask them we have I
+
+think five minutes for questions hey I
+
+have a question about IP tables so my
+
+understanding is like one of the
+
+downsides of IP tables is that under the
+
+hood every time you change a rule you
+
+actually have to unload and then reload
+
+the entire rule set you can BPF do you
+
+say like partial recompilation or like
+
+does it suffer from that same alright so
+
+I IP tables houses probably you can only
+
+replace an entire table which means
+
+entire entire change right so an entire
+
+filter table and for example an F tables
+
+already don't house it it doesn't have
+
+this problem anymore PPF also doesn't
+
+have this problem like in BPF you would
+
+compile the program loaded in and then
+
+use BPF maps which kind of contains the
+
+state for example the policy and these
+
+maps can be updated like multiple type
+
+multiple hundred thousands of times per
+
+second it's kind of incremental updates
+
+so it vpf does not suffer from this
+
+problem in general thanks but that said
+
+the DPF filter project which is kind of
+
+this iptables compatible version does
+
+not solve this problem because it's a
+
+it's an IP tables fundamental problem so
+
+BPF only accelerates the actual
+
+enforcement of it yeah just quick
+
+question so I've been really on lwn
+
+recently about xtp sockets like a FX DP
+
+so I'm curious how that fits into all of
+
+this awesome yeah so FX DP x DP is the
+
+BPF version that runs at the network
+
+device driver level it actually allows
+
+vpf programs to look into what's in a
+
+packet data on the DMA buffer like very
+
+very close this is what we use for DDoS
+
+protection AF x DP is a way to export
+
+this data to user space so this for
+
+example allows us to build a very fast
+
+very efficient efficient new version of
+
+TCP dump for example that is that is
+
+super low overhead it allows us for
+
+example to gain insight into what is
+
+going on at the network device layer
+
+without actually copying the copying
+
+data around Salim that currently does
+
+not use this but we definitely have
+
+plans to use this it was only merged a
+
+couple of weeks ago
+
+to sophistic or for the application to
+
+sidecar communication I can use TCP dump
+
+to debug yes if we redirect with sockets
+
+as it's possible so you will see the
+
+handshake you will not see the data but
+
+bbr we expose information by our beef
+
+PPF specific way if we would do this if
+
+you would actually expose this through
+
+TCP dump again we would lose all of the
+
+all of the benefits we've just gained
+
+but you will so you will still see the
+
+connection opening and you will still
+
+see the connection closing but you will
+
+not see an entry for every single data
+
+packet because there's no packet yes
+
+correct yes you can so even even for the
+
+non sidecar case you can still use TCP
+
+dump if you want we have a more
+
+efficient version of TCP dump that also
+
+gives you more context so instead of
+
+just IP addresses
+
+well for example show you hey there is a
+
+container if these labels talking to
+
+this container if these labels instead
+
+of just this IP do to actually this IP
+
+so we have a microservices ready TCP
+
+dump clone alright so you talked about
+
+helium working with envoy and and all
+
+the performance gain that we are getting
+
+but I think in Austin we we did come to
+
+you and we asked about is there a
+
+possibility with helium not working
+
+without envoy oh yes up so so silly uses
+
+envoy for all layer 7 enforcement so
+
+whenever you have a policy rule that
+
+requires to restrict on HTTP level so
+
+lean will automatically get envoy into
+
+the picture if you don't have these
+
+rules then envoy rule we will only go
+
+through one Roy if we need to alright so
+
+the main thing was the main concern we
+
+did not wanted to introduce eesti or
+
+this was last year and well the reason
+
+we could not go for CVM at that time
+
+first because helium was to intertwine
+
+with easty oh is that still the case so
+
+we have we've just finished a prototype
+
+where we can where we run side by side
+
+sto variable X basically is your pilot
+
+manages the Envoy instance for all the
+
+parts and psyllium talks to the same
+
+Envoy instance so basically instead of
+
+running two instances of Envoy we
+
+basically use the same instance so I
+
+it's it's not tightly coupled X I think
+
+we are running out of time and I want to
+
+make sure I give this away so let's see
+
+we were at 1968 so let's see alright we
+
+made two thousand stars
+
+[Music]
+
+all right
+
+so let's see any Google for the math so
+
+we have 6832
+
+so pick a number so yeah we are received
+
+74 stars will have Google pick a random
+
+number for us so the number is 7 so we
+
+go back to the stars we reload this and
+
+we'll go to Alexandrine then count 7 up
+
+all right so one two three four five six
+
+seven Simon and very Simon there you go
+
+[Music]
+
+thank thanks a lot for your star all
+
+right so I think we have a couple of
+
+t-shirts left in the back unfortunately
+
+run out of some sizes so if you still
+
+want a cilium shirt we also have
+
+stickers make sure you check at the exit
+
+I'm also available outside for more
+
+questions
+

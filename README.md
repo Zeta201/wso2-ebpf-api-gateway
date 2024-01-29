@@ -195,3 +195,33 @@ connections as given below.
 
 Users can also use Hubble under Cilium CNI Layer to gain a deep observability and visibility for
 logging, tracing, and monitoring connections under this setup.
+
+
+## Service Mesh/Sidecar Architecture
+
+In a sidecar architeture we have two services and we use a sidecar on each side to communicate with each other.So instead of services talking through the network directly we
+basically inject the sidecar proxy inside of each pod which then talks on behalf of the service. 
+
+## Sidecar Injection
+When you look at what's actually going on under the hood you might see where where some of performance overhead is coming from and this actually has nothing to do with the proxies themselves. it's how the proxy is being put into the picture.
+
+Applications use sockets to talk to each other. So the service the application opens a socket and makes
+an outgoing HTTP request. The sidecar itself listens on a
+port it's also a socket. They use TCP to talk to each other. The kernel itself is not able to do forwarding on ly on L3. It needs a L2 protocol as well so let's bring Ethernet to the mix. You'd find it surprising that an application is talking to a sidecar and Ethernet is involved! Moreover, Linux does everything the files and
+devices let's add the devices to the mix. So from
+from app to sidecar this could be the loopback. In this model we already going through the TCP stack and Ethernet stack 6 times. We're also going through four different devices. All of this adds a lot of latency it's literally running through
+millions of C code!
+
+## Why use TCP and Ethernet in a single-node, lossless environment?
+
+Why do we use TCP? It's all be the sidecar always in the same pod or on the same node. TCP has been designed to survive nuclear blasts! TCP has been designed to survive lossy environments where packets can get lost. If you're
+staying on the same node packets are not getting lost. It's basically data that we have to move from one from the app to the sidecar.
+
+## Transparent Sidecar Injection with Cilium
+
+This is where the BPF comes in. Cilium uses socket level BPF and it will detect that your application is talking to the sidecar locally so it will simply copy the data from one socket to the other transparently acclerating envoy.
+
+## Siecar Injection Performance
+
+Y-axis is the number of requests per second the the X- axis is the number of persistent connections. Typically if you're running service mesh or you're running with with a sidecar the app does not open a new connection for every request. Most networking libraries will maintain connection pools and will reuse the same TCP connection multiple times for new requests. With Cilium. The above graph indicates 3 cases. Blue bar indicates the IP tables redirect. This is what you get when you deploy Istio Service Mesh. Orange is the case where you point the the app to the sidecar so you don't need the IP tables redirect rule so the difference between blue and orange is already that the cost of a single IP tables redirect. Then Yellow is Cilium accelerating this transparently and it's somewhere between 3-4X faster.
+
