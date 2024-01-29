@@ -19,8 +19,9 @@ deploy-demo-apps:
 	@echo "Deployment success!"
 	@echo "Run \e[1mmake test-echo-service\e[0m to test the echo api"
 	@echo "Run \e[1mmake test-details-service\e[0m to test the details api"
-clean-demo-apps:
+clean:
 	kubectl delete -f bookinfo.yaml
+	helm uninstall apk
 
 test-wasm:
 	curl -sS -I -k --location 'https://http-bin.gw.wso2.com:9095/details-api/1.0.0/details/1' --header 'Host: details.gw.wso2.com'  --header "Authorization: bearer $(ACCESS_TOKEN)" 

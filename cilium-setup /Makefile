@@ -15,8 +15,8 @@ configure-metallb:
 	- kubectl apply -f metallb_values.yaml
 
 install-demo-apps:
-	- kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.11/samples/bookinfo/platform/kube/bookinfo.yaml
-	- kubectl apply -f https://raw.githubusercontent.com/cilium/cilium/HEAD/examples/kubernetes/servicemesh/envoy/test-application-proxy-circuit-breaker.yaml
+	kubectl apply ../apk-setup/bookinfo.yaml
+	kubectl wait deployment -l wso2=demo --timeout=10m --for=condition=Available
 
 clean:
 	- helm uninstall cilium -n kube-system
