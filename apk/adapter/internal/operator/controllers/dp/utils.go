@@ -6,13 +6,12 @@ import (
 
 	"github.com/wso2/apk/adapter/internal/operator/synchronizer"
 	"github.com/wso2/apk/adapter/internal/operator/utils"
-	dpv1alpha1 "github.com/wso2/apk/common-go-libs/apis/dp/v1alpha1"
 	dpv1alpha2 "github.com/wso2/apk/common-go-libs/apis/dp/v1alpha2"
 	"k8s.io/apimachinery/pkg/types"
 	gwapiv1b1 "sigs.k8s.io/gateway-api/apis/v1beta1"
 )
 
-func (apiReconciler *APIReconciler) getServicesForAPI(ctx context.Context, apiState *synchronizer.APIState, httpRoutes map[string]*gwapiv1b1.HTTPRoute, api dpv1alpha2.API) ([]dpv1alpha1.Service, error) {
+func (apiReconciler *APIReconciler) getServicesForAPI(ctx context.Context, apiState *synchronizer.APIState, httpRoutes map[string]*gwapiv1b1.HTTPRoute, api dpv1alpha2.API) ([]ServiceState, error) {
 
 	for _, httpRoute := range httpRoutes {
 		for _, rule := range httpRoute.Spec.Rules {
@@ -23,10 +22,12 @@ func (apiReconciler *APIReconciler) getServicesForAPI(ctx context.Context, apiSt
 				}
 				resolvedBackend := utils.GetResolvedBackend(ctx, apiReconciler.client, backendNamespacedName, &api)
 				if len(resolvedBackend.Backend.Spec.Services) > 0 {
-					return resolvedBackend.Services, nil
+
+					services := translateService(resolvedBackend.Services)
+					return services, nil
 				}
 			}
 		}
 	}
-	return []dpv1alpha1.Service{}, errors.New("no services found for the api")
+	return []ServiceState{}, errors.New("no services found for the api")
 }

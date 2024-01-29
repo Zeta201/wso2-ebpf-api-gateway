@@ -21,6 +21,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"sync"
 
 	"github.com/wso2/apk/adapter/config"
@@ -377,7 +378,6 @@ func (apiReconciler *APIReconciler) resolveAPIRefs(ctx context.Context, api dpv1
 			return nil, fmt.Errorf("no gateway available for httpRouteref %s in namespace :%s has not found",
 				prodRouteRefs, namespace)
 		}
-
 		// enable jwt by generating a cec for all the services in the api
 
 		// get all services for the api
@@ -389,8 +389,9 @@ func (apiReconciler *APIReconciler) resolveAPIRefs(ctx context.Context, api dpv1
 			return nil, fmt.Errorf("no services available for api")
 		}
 
-		svc := translateService(services)
-		_ = generateJWTEnvoyConfig(svc, apiState)
+		cec := generateJWTEnvoyConfig(services, apiState)
+
+		log.Printf("Generated CEC %v", cec)
 
 	}
 

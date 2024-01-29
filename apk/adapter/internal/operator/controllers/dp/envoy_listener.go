@@ -23,7 +23,7 @@ const (
 )
 
 // NewHTTPListenerWithDefaults same as NewListener but with default mutators applied.
-func NewHTTPListenerWithDefaults(name string, mutatorFunc ...ListenerMutator) (ciliumv2.XDSResource, error) {
+func NewHTTPListenerWithDefaults(name string, authProvider *AuthProvider, mutatorFunc ...ListenerMutator) (ciliumv2.XDSResource, error) {
 
 	return NewHTTPListener(name, mutatorFunc...)
 }
