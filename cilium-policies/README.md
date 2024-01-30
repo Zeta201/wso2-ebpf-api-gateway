@@ -93,6 +93,27 @@ server: envoy
 vary: Accept-Encoding
 
 ```
+Configuring Cilium Envoy with Web Assembly
+
+The below guide explains how to customize the Cilium Envoy possibly for running custom domain business logic using Web Assembly.
+
+Run the below command to mount the web assembly compiled binary into Cilium Agents.
+```bash
+make copy-wasm
+```
+Run the following command to enable wasm filter using a **CEC** 
+```bash
+make enable-wasm
+```
+Run the following command to send a request to the details-api to test the Wasm filter. You should see some custom HTTP headers have been added to the response object as given below
+```bash
+make test-wasm
+```
+**Sample Output**
+
+```bash 
+
+```
 ## Debugging 
 
 **CiliumEnvoyConfig** has minimal feedback to the user about the correctness of the configuration. So in the event a CEC does produce an undesirable outcome, troubleshooting will require inspecting the Envoy config and logs, rather than being able to look at the **CiliumEnvoyConfig** in question.  Check Cilium Agent logs if you are creating Envoy resources explicitly to make sure there is no conflict.
