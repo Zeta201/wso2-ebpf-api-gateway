@@ -93,3 +93,10 @@ server: envoy
 vary: Accept-Encoding
 
 ```
+## Debugging 
+
+**CiliumEnvoyConfig** has minimal feedback to the user about the correctness of the configuration. So in the event a CEC does produce an undesirable outcome, troubleshooting will require inspecting the Envoy config and logs, rather than being able to look at the **CiliumEnvoyConfig** in question.  Check Cilium Agent logs if you are creating Envoy resources explicitly to make sure there is no conflict.
+
+```bash
+kubectl logs -n kube-system ds/cilium | grep -E "level=(error|warning)"
+```    
