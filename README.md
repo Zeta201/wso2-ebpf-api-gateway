@@ -32,6 +32,10 @@ WSO2-Implementing an eBPF based API Gateway
    - [Deploy WSO2APK](#deploy-wso2apk)<br>
    - [Configuring Cilium Envoy](#configuring-cilium-envoy)<br>
    - [Debugging](#debugging)<br>
+      - [Cilium Agent Logs](#cilium-agent-logs)<br>
+      - [Cilium Envoy Debug Logs](#cilium-envoy-debug-logs)<br>
+      - [Hubble](#hubble)<br>
+      - [Envoy Admin Console](#envoy-admin-console)<br>
 - **[References](#references)**<br> 
    
 
@@ -451,11 +455,118 @@ make test-wasm
 ```
 ### Debugging 
 
-**CiliumEnvoyConfig** has minimal feedback to the user about the correctness of the configuration. So in the event a CEC does produce an undesirable outcome, troubleshooting will require inspecting the Envoy config and logs, rather than being able to look at the **CiliumEnvoyConfig** in question.  Check Cilium Agent logs if you are creating Envoy resources explicitly to make sure there is no conflict.
+#### Cilium Agent Logs
+`CiliumEnvoyConfig` has minimal feedback to the user about the correctness of the configuration. So in the event a CEC does produce an undesirable outcome, troubleshooting will require inspecting the Envoy config and logs, rather than being able to look at the **CiliumEnvoyConfig** in question.  Check Cilium Agent logs if you are creating Envoy resources explicitly to make sure there is no conflict.
 
 ```bash
 kubectl logs -n kube-system ds/cilium | grep -E "level=(error|warning)"
-```    
+```
+
+#### Cilium Envoy Debug Logs
+Cilium Envoy debug logs can be enabled by adding the following command line argument for the Cilium agent on the Cilium Daemonset.
+```bash
+containers:
+- args:
+  - --config-dir=/tmp/cilium/config-map
+  - --envoy-log=/tmp/envoy.log
+  - --debug-verbose=envoy
+  command:
+  - cilium-agent
+```
+After restarting the daemonset, you can send traffic through the proxy and capture important lines from the resulting debug log.
+```bash
+```
+#### Hubble
+Hubble is a network observability and security solution that is built on top of Cilium. It provides a set of features that allow users to monitor, troubleshoot and secure the network traffic in a Kubernetes cluster.
+
+Hubble allows users to see a detailed view of the network traffic in a Kubernetes cluster, including the source and destination of the traffic, the protocol being used, and the policies that are being enforced. This information can be used to troubleshoot issues, identify security threats, and ensure compliance with regulatory requirements.<br>
+If you followed this guide Hubble should have been deployed by **default**. Although `Hubble` and `Hubble UI` can be enabled by adding the following configurations to the [`cilium-config.yaml`](https://github.com/Zeta201/wso2-ebpf-api-gateway/blob/main/cilium-setup%20/cilium-config.yaml) file.
+```bash
+hubble:
+  relay:
+    enabled: true
+  ui:
+    enabled: true
+```
+Run the below line to set up a port forward to the Hubble Service.
+```bash
+cilium hubble port-forward&
+```
+If your browser has not automatically opened the UI, open the page `http://localhost:12000` in your browser.
+
+Now you can inspect traffic that ingressing or egressing out of pods, namespaces and envoy proxy itself.<br>
+You can get a **graphical overview** of what's happening inside your cluster through **Hubble UI**.
+Open the Hubble UI in your browser by running below command. It will automatically set up a port forward to the hubble-ui service in your Kubernetes cluster and make it available on a local port on your machine.
+```bash
+cilium hubble ui
+```
+By default, Hubble will only provide visibility into L3/L4 packet events. If you want L7 protocol visibility, you can use L7 Cilium Network Policies.
+To enable visibility for L7 traffic, create a `CiliumNetworkPolicy` that specifies L7 rules. Traffic flows matching a L7 rule in a CiliumNetworkPolicy will become visible to Cilium. This enables us to monitor the traffic logs through Hubble.
+If you want to inspect and gain visiblity for DNS (TCP/UDP/53) and HTTP (ports TCP/80 and TCP/8080) traffic , you can use the below `CiliumNetworkPolicy` which exposes the DNS and HTTP trafficwithin the default namespace.
+
+```bash
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: "l7-visibility"
+spec:
+  endpointSelector:
+    matchLabels:
+      "k8s:io.kubernetes.pod.namespace": default
+  egress:
+  - toPorts:
+    - ports:
+      - port: "53"
+        protocol: ANY
+      rules:
+        dns:
+        - matchPattern: "*"
+  - toEndpoints:
+    - matchLabels:
+        "k8s:io.kubernetes.pod.namespace": default
+    toPorts:
+    - ports:
+      - port: "80"
+        protocol: TCP
+      - port: "8080"
+        protocol: TCP
+      rules:
+        http: [{}]
+```
+Create a new file called `l7-netpolicy.yaml` including the above configurations and run the below command to create the `CiliumNetworkPolicy`
+```bash
+kubectl apply -f l7-netpolicy.yaml
+```
+Based on the above policy, Cilium will pick up all TCP/UDP/53, TCP/80 and TCP/8080 egress traffic from Pods in the default namespace and redirect it to the proxy.
+Run the below command to observe traffic through hubble.
+```bash
+hubble observe -f -t l7 -o compact
+```
+Hubble can come in quite handy when troubleshooting upstream connection faliures.
+#### Envoy Admin Console
+The Envoy admin console is a web-based user interface that allows users to view and manage the configuration and status of Envoy proxies in a system. The admin console provides a real-time view of the Envoy proxies and the traffic that they are handling, and it allows users to make configuration changes, view statistics and metrics, and troubleshoot issues.<br>
+Envoy is running as a process within Cilium and the Envoy admin console is exposed as a unix socket. We can use socat to map the unix socket to a TCP port and then port forward that port to our local machine. You can follow the below steps to access the Envoy admin console.<br><br>
+
+Get the `Cilium Agent` Pod name and save it to an environment variable `AGENT`.
+```bash
+AGENT=$(kubectl get pods -n kube-system -l app.kubernetes.io/name=cilium-agent -o 'jsonpath={.items[0].metadata.name}')
+```
+Exec into the Cilium Agent
+```bash
+kubectl exec -it $AGENT -n kube-system -- bash
+```
+Install socat to map the unix socket to a tcp port
+```bash
+apt update -y && apt install socat tcpdump -y
+```
+Map envoy-admin unix socket to a TCP port
+```bash
+socat TCP-LISTEN:12345,fork UNIX-CONNECT:/var/run/cilium/envoy/sockets/xds.sock
+```
+Then kubectl port forward the TCP port to localhost
+```bash
+kubectl port-forward $AGENT 12345:12345 -n kube-system
+```
 ## References
 - [*Learning EBPF-Liz Rice*](https://cilium.isovalent.com/hubfs/Learning-eBPF%20-%20Full%20book.pdf)
 - [*Cilium Project-Github*](https://github.com/cilium/cilium)
