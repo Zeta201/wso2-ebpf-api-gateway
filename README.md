@@ -471,14 +471,15 @@ x-auth: eycustomajwttoken
 ### Debugging 
 
 #### Cilium Agent Logs
-`CiliumEnvoyConfig` has minimal feedback to the user about the correctness of the configuration. So in the event a CEC does produce an undesirable outcome, troubleshooting will require inspecting the Envoy config and logs, rather than being able to look at the **CiliumEnvoyConfig** in question.  Check Cilium Agent logs if you are creating Envoy resources explicitly to make sure there is no conflict.
+`CiliumEnvoyConfig` has minimal feedback to the user about the correctness of the configuration. So in the event a CEC does produce an undesirable outcome, troubleshooting will require inspecting the Envoy config and logs, rather than being able to look at the `CiliumEnvoyConfig`` in question.  Check Cilium Agent logs if you are creating Envoy resources explicitly to make sure there is no conflict.
 
 ```bash
 kubectl logs -n kube-system ds/cilium | grep -E "level=(error|warning)"
 ```
 
 #### Cilium Envoy Debug Logs
-Cilium Envoy debug logs can be enabled by adding the following command line argument for the Cilium agent on the Cilium Daemonset.
+Cilium Envoy debug logs can be enabled by adding the following command line argument for the Cilium agent on the Cilium Daemonset. Download the appropriate Cilium Helm Chart for `Cilium 1.14.6` from this [link](https://github.com/cilium/charts) and
+modify the daemonset.yaml file under `templates\cilium-agent` directory as given below.
 ```bash
 containers:
 - args:
