@@ -452,7 +452,21 @@ make test-wasm
 **Sample Output**
 
 ```bash 
-
+HTTP/2 200 
+x-powered-by: Express
+vary: Origin, Accept-Encoding
+access-control-allow-credentials: true
+accept-ranges: bytes
+cache-control: public, max-age=0
+last-modified: Wed, 21 Sep 2022 10:25:56 GMT
+etag: W/"809-1835f952f20"
+content-type: text/html; charset=UTF-8
+server: envoy
+content-length: 2057
+date: Tue, 30 Jan 2024 05:00:26 GMT
+x-envoy-upstream-service-time: 1
+x-wasm-filter: hello from wasm
+x-auth: eycustomajwttoken
 ```
 ### Debugging 
 
@@ -581,6 +595,6 @@ kubectl port-forward $AGENT 12345:12345 -n kube-system
 ## References
 - [*Learning EBPF-Liz Rice*](https://cilium.isovalent.com/hubfs/Learning-eBPF%20-%20Full%20book.pdf)
 - [*Cilium Project-Github*](https://github.com/cilium/cilium)
-- [*Cilium Documentation*](https://docs.cilium.io/en/stable/)https://docs.cilium.io/en/stable/)
+- [*Cilium Official Documentation*](https://docs.cilium.io/en/stable/)
 - [*Envoy Proxy Documentation*](https://www.envoyproxy.io/docs)
-- [*eBPF-Official*](https://ebpf.io/)
+- [*eBPF Official Documentation*](https://ebpf.io/)
