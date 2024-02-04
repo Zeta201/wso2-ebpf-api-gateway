@@ -200,8 +200,11 @@ Users can also use Hubble under Cilium CNI Layer to gain a deep observability an
 logging, tracing, and monitoring connections under this setup.
 
 ## Developer Guide
+This guide will help you to understand on deploying the eBPF based API Gateway.
 
-### Clone the Repository
+### Environment Setup
+
+#### Clone the Repository
 
 First clone the repository as given below.
 ```bash
@@ -212,7 +215,7 @@ Change your working directory to cilium-setup inside the cloned repository direc
 cd cilium-setup
 ```
 
-### Setup a Kind Cluster
+#### Setup a Kind Cluster
 
 First we need to create a new kind cluster to install Cilium. The below command will create a new kind cluster with one worker node disabling the default CNI and kube-proxy.
 
@@ -220,31 +223,87 @@ First we need to create a new kind cluster to install Cilium. The below command 
 make cluster-setup
 ```
 
-### Install Cilium
+#### Install Cilium
 
 The below command will install Cilium as the CNI Plugin for Kubernetes and it will also install Hubble for metrics and logging.
 
 ```bash
 make install-cilium
 ```
-### Install MetalLB
+#### Install MetalLB
 
 To access the service that will be exposed via the Gateway API, we need to allocate an external IP address. When a Gateway is created, an associated Kubernetes Services of the type LoadBalancer is created. When using a managed Kubernetes Service like EKS, AKS or GKE, the LoadBalancer is assigned an IP (or DNS name) automatically. For private cloud or for home labs, we need another tool – such as MetalLB below – to allocate an IP Address and to provide L2 connectivity.
 
 ```bash
 make install-metallb
 ```
-### Configure MetalLB
+#### Configure MetalLB
 
 Run the below command to apply L2 announcement policy for MetalLB.
 
 ```bash
 make configure-metallb
 ```
-### Install Demo Applications
+#### Install Demo Applications
 
 Install the applcations for testing the API gateway.
 
 ```bash
 make install-demo-apps
 ```
+
+#### Clean
+
+Run below command to uninstall cilium, metallb and demo apps.
+
+```bash
+make clean
+```
+
+### Deploy WSO2APK
+
+Change your working directory to apk-setup directory under the root directory
+
+```bash
+cd apk-setup
+```
+#### Install required packages
+
+This will install jq package for Ubuntu environment which will help us by formatting the response objects and making it easier for selecting the attributes.
+
+```bash
+make prepare
+```
+#### Install APK
+
+Install APK from the customized helm chart.
+
+```bash
+make apk-install
+```
+#### Deploy the Demo Apps
+Install and deploy the API, HTTPRoute, and Backend CRs for the demo application set.
+
+```bash
+make deploy-demo-apps
+```
+#### Test the setup
+
+Test echo service
+
+```bash
+make test-echo-service
+```
+Test details service
+
+```bash
+make test-details-service
+```
+#### Clean
+Uninstall APK and undeploy all APIs.
+
+```bash
+make clean
+```
+
+
