@@ -234,7 +234,7 @@ make cluster-setup
 The below command will install Cilium as the CNI Plugin for Kubernetes and it will also install Hubble for metrics and logging.
 **IMPORTANT**
 Under this guide we will be deploying **Cilium Node Level Envoy Proxy** as an embedded process inside the Cilium Agent. However it is possible to deploy the Cilium Envoy Proxy as a standalone daemonset.
-If you want to deploy it as a standalone daemonset set add the below configuration to the [cilium-config.yaml](https://github.com/user/repo/blob/branch/other_file.md) file under this directory.
+If you want to deploy it as a standalone daemonset set add the below configuration to the [cilium-config.yaml](https://github.com/Zeta201/wso2-ebpf-api-gateway/blob/main/cilium-setup%20/cilium-config.yaml) file under this directory.
 ```bash
 envoy:
   enabled: true
