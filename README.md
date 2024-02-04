@@ -474,7 +474,17 @@ containers:
   - cilium-agent
 ```
 After restarting the daemonset, you can send traffic through the proxy and capture important lines from the resulting debug log.
+First, Get the `Cilium Agent` Pod name and save it to an environment variable `AGENT`.
 ```bash
+AGENT=$(kubectl get pods -n kube-system -l app.kubernetes.io/name=cilium-agent -o 'jsonpath={.items[0].metadata.name}')
+```
+Exec into the Cilium Agent
+```bash
+kubectl exec -it $AGENT -n kube-system -- bash
+```
+View `envoy.log` file located in `/tmp/` directory.
+```bash
+cat /tmp/envoy.log
 ```
 #### Hubble
 Hubble is a network observability and security solution that is built on top of Cilium. It provides a set of features that allow users to monitor, troubleshoot and secure the network traffic in a Kubernetes cluster.
@@ -492,14 +502,14 @@ Run the below line to set up a port forward to the Hubble Service.
 ```bash
 cilium hubble port-forward&
 ```
-If your browser has not automatically opened the UI, open the page `http://localhost:12000` in your browser.
-
 Now you can inspect traffic that ingressing or egressing out of pods, namespaces and envoy proxy itself.<br>
 You can get a **graphical overview** of what's happening inside your cluster through **Hubble UI**.
 Open the Hubble UI in your browser by running below command. It will automatically set up a port forward to the hubble-ui service in your Kubernetes cluster and make it available on a local port on your machine.
 ```bash
 cilium hubble ui
 ```
+If your browser has not automatically opened the UI, open the page `http://localhost:12000` in your browser.
+
 By default, Hubble will only provide visibility into L3/L4 packet events. If you want L7 protocol visibility, you can use L7 Cilium Network Policies.
 To enable visibility for L7 traffic, create a `CiliumNetworkPolicy` that specifies L7 rules. Traffic flows matching a L7 rule in a CiliumNetworkPolicy will become visible to Cilium. This enables us to monitor the traffic logs through Hubble.
 If you want to inspect and gain visiblity for DNS (TCP/UDP/53) and HTTP (ports TCP/80 and TCP/8080) traffic , you can use the below `CiliumNetworkPolicy` which exposes the DNS and HTTP trafficwithin the default namespace.
