@@ -224,7 +224,7 @@ cd cilium-setup
 #### Setup a Kind Cluster
 
 First we need to create a new kind cluster to install Cilium. The below command will create a new kind cluster with one worker node disabling the default CNI and kube-proxy.<br>
-The **Cluster configuration file** can be found as [cluster-config.yaml](https://github.com/Zeta201/wso2-ebpf-api-gateway/blob/main/cilium-setup%20/cluster-config.yaml).
+The **Cluster configuration** can be found in [`cluster-config.yaml`](https://github.com/Zeta201/wso2-ebpf-api-gateway/blob/main/cilium-setup%20/cluster-config.yaml).
 
 ```bash
 make cluster-setup
@@ -233,9 +233,10 @@ make cluster-setup
 #### Install Cilium
 
 Next, we will install Cilium as the CNI Plugin for Kubernetes and we will also install Hubble Observability Tool for metrics and logging. All the configurations which are used for installing Cilium
-can be found the [cilium-config.yaml](https://github.com/Zeta201/wso2-ebpf-api-gateway/blob/main/cilium-setup%20/cilium-config.yaml) file in the current directory.<br>
-**IMPORTANT**: Under this guide we will be deploying **Cilium Node Level Envoy Proxy** as an embedded process inside the Cilium Agent. However it is possible to deploy the Cilium Envoy Proxy as a standalone daemonset.
-If you want to deploy it as a standalone daemonset set add the below configuration to the [cilium-config.yaml](https://github.com/Zeta201/wso2-ebpf-api-gateway/blob/main/cilium-setup%20/cilium-config.yaml) file under this directory.
+can be found the [`cilium-config.yaml`](https://github.com/Zeta201/wso2-ebpf-api-gateway/blob/main/cilium-setup%20/cilium-config.yaml) file in the current directory.<br><br>
+**IMPORTANT**: Under this guide we will be deploying **Cilium Node Level Envoy Proxy** as an embedded process inside the Cilium Agent. However it is possible to deploy the Cilium Envoy Proxy as a **standalone daemonset**.
+Deploying the envoy proxy as a **daemonset** will be trivial for the future development as it enables us to decouple it from the **Cilium Agent** pods.
+If you want to deploy it as a **standalone daemonset** add the below configuration to the [`cilium-config.yaml`](https://github.com/Zeta201/wso2-ebpf-api-gateway/blob/main/cilium-setup%20/cilium-config.yaml) file under this directory.
 ```bash
 envoy:
   enabled: true
@@ -253,7 +254,7 @@ kubectl get pods -n kube-system --watch
 
 #### Install MetalLB
 
-To access the service that will be exposed via the Gateway API, we need to allocate an external IP address. When a Gateway is created, an associated Kubernetes Services of the type LoadBalancer is created. When using a managed Kubernetes Service like EKS, AKS or GKE, the LoadBalancer is assigned an IP (or DNS name) automatically. For private cloud or for home labs, we need another tool – such as MetalLB below – to allocate an IP Address and to provide L2 connectivity.
+To access the service that will be exposed via the Gateway API, we need to allocate an external IP address. When a Gateway is created, an associated Kubernetes Services of the type LoadBalancer is created. When using a managed Kubernetes Service like EKS, AKS or GKE, the LoadBalancer is assigned an IP (or DNS name) automatically. For private cloud or for home labs, we need another tool such as **MetalLB** to allocate an IP Address and to provide L2 connectivity.
 
 ```bash
 make install-metallb
@@ -273,7 +274,7 @@ Install the applcations for testing the API gateway.
 make install-demo-apps
 ```
 
-#### Clean
+#### Clean-Up Process
 
 Run below command to uninstall cilium, metallb and demo apps.
 
@@ -320,7 +321,7 @@ Test details service
 ```bash
 make test-details-service
 ```
-#### Clean
+#### Clean-Up Process
 Uninstall APK and undeploy all APIs.
 
 ```bash
@@ -456,3 +457,8 @@ make test-wasm
 kubectl logs -n kube-system ds/cilium | grep -E "level=(error|warning)"
 ```    
 ## References
+- [*Learning EBPF-Liz Rice*](https://cilium.isovalent.com/hubfs/Learning-eBPF%20-%20Full%20book.pdf)
+- [*Cilium Project-Github*](https://github.com/cilium/cilium)
+- [*Cilium Documentation*](https://docs.cilium.io/en/stable/)https://docs.cilium.io/en/stable/)
+- [*Envoy Proxy Documentation*](https://www.envoyproxy.io/docs)
+- [*eBPF-Official*](https://ebpf.io/)
