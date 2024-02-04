@@ -562,6 +562,10 @@ Create a new file called `l7-netpolicy.yaml` including the above configurations 
 ```bash
 kubectl apply -f l7-netpolicy.yaml
 ```
+Verify that `CiliumNetworkPolicy` has been successfully created.
+```bash
+kubectl get cnp -A
+```
 Based on the above policy, Cilium will pick up all TCP/UDP/53, TCP/80 and TCP/8080 egress traffic from Pods in the default namespace and redirect it to the proxy.
 Run the below command to observe traffic through hubble.
 ```bash
