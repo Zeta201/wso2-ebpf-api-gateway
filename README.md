@@ -24,11 +24,12 @@
 WSO2-Implementing an eBPF based API Gateway
 ===========================================
 ### Table of Contents
-**[Project Introduction](#project-introduction)**<br>
-**[Technologies Used](#technologies-used)**<br>
-**[System Architecture](#system-architecture)**<br>
-**[Developer Guide](#developer-guide)**<br>
-   - **[Environment Setup](#environment-setup)**<br>
+- **[Project Introduction](#project-introduction)**<br>
+- **[Technologies Used](#technologies-used)**<br>
+- **[System Architecture](#system-architecture)**<br>
+- **[Developer Guide](#developer-guide)**<br>
+   - [Environment Setup](#environment-setup)<br>
+   - [Deploy WSO2APK](#deploy-wso2apk)<br>
 
 ## Project Introduction
 
