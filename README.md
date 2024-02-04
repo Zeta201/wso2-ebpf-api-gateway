@@ -219,6 +219,7 @@ This guide will help you to understand on deploying the eBPF based API Gateway.
 First clone the repository as given below.
 ```bash
 git clone https://github.com/Zeta201/wso2-ebpf-api-gateway.git
+cd wso2-ebpf-api-gateway
 ```
 Assuming your are under the **root directory**, change your working directory to cilium-setup inside the cloned repository directory.
 ```bash
