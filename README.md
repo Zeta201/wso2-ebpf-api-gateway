@@ -478,8 +478,7 @@ kubectl logs -n kube-system ds/cilium | grep -E "level=(error|warning)"
 ```
 
 #### Cilium Envoy Debug Logs
-Cilium Envoy debug logs can be enabled by adding the following command line argument for the Cilium agent on the Cilium Daemonset. Download the appropriate Cilium Helm Chart for `Cilium 1.14.6` from this [link](https://github.com/cilium/charts) and
-modify the daemonset.yaml file under `templates\cilium-agent` directory as given below.
+Cilium Envoy debug logs can be enabled by adding the following command line argument for the Cilium agent on the Cilium Daemonset. Download the Cilium Helm Chart for `Cilium 1.14.6` (As we are using `Cilium 1.14.6` under this setup) from this [link](https://github.com/cilium/charts/blob/master/cilium-1.14.6.tgz) and add the additional below lines to the `cilium-agent` container in the `daemonset.yaml` file under `templates\cilium-agent` directory.
 ```bash
 containers:
 - args:
